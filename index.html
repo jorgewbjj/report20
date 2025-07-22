@@ -34,7 +34,7 @@
       background: #f8f9fa;
       border-radius: 10px;
     }
-    .logo { height: 60px; margin-bottom: 10px; }
+    .logo { height: 80px; margin-bottom: 10px; }
     .form-group {
       background: white;
       border: 1px solid #dee2e6;
@@ -265,6 +265,35 @@
       background: var(--danger-color);
       color: white;
     }
+
+    /* Slack configuration styles */
+    .slack-config {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    .slack-config h3 {
+      margin-top: 0;
+      color: #495057;
+    }
+    .slack-status {
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    .slack-status.enabled {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .slack-status.disabled {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
   </style>
 
   <!-- Firebase -->
@@ -274,11 +303,24 @@
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <!-- MapTiler API Key Alert -->
   <div class="alert success" id="mapsAlert">
     ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
+  </div>
+
+  <!-- Slack Configuration -->
+  <div class="slack-config">
+    <h3>📢 Slack Integration</h3>
+    <label for="slackWebhook">Slack Webhook URL (optional):</label>
+    <input type="url" id="slackWebhook" placeholder="https://hooks.slack.com/services/..." />
+    <label for="slackChannel">Slack Channel:</label>
+    <input type="text" id="slackChannel" placeholder="#roof-inspections" value="#roof-inspections" />
+    <div class="slack-status disabled" id="slackStatus">
+      Slack automation disabled - Add webhook URL to enable automatic PDF delivery
+    </div>
   </div>
 
   <div class="form-group">
@@ -299,7 +341,7 @@
   </div>
 
   <div class="header">
-    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K" class="logo" alt="SEAL TOP ROOF Logo">
+    <img src="Logo seal e slogan@2x (1).png" class="logo" alt="SEAL TOP ROOF Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';">
     <h1>Roof Inspection Report</h1>
   </div>
 
@@ -415,6 +457,9 @@
     const obsContainer = document.getElementById('observations-container');
     const addressInput = document.getElementById('address');
     const addressSuggestions = document.getElementById('addressSuggestions');
+    const slackWebhookInput = document.getElementById('slackWebhook');
+    const slackChannelInput = document.getElementById('slackChannel');
+    const slackStatus = document.getElementById('slackStatus');
 
     // ==== Enhanced Address Database ====
     const addressDatabase = [
@@ -478,12 +523,154 @@
       addObservation();
       initializeMapTiler();
       setupAddressAutocomplete();
+      setupSlackConfiguration();
     });
 
     function setDefaultDate() {
       const d = new Date();
       document.getElementById('date').value =
         `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ==== Slack Configuration ====
+    function setupSlackConfiguration() {
+      slackWebhookInput.addEventListener('input', updateSlackStatus);
+      slackChannelInput.addEventListener('input', updateSlackStatus);
+      
+      // Load saved Slack configuration
+      const savedWebhook = localStorage.getItem('slackWebhook');
+      const savedChannel = localStorage.getItem('slackChannel');
+      
+      if (savedWebhook) {
+        slackWebhookInput.value = savedWebhook;
+      }
+      if (savedChannel) {
+        slackChannelInput.value = savedChannel;
+      }
+      
+      updateSlackStatus();
+    }
+
+    function updateSlackStatus() {
+      const webhook = slackWebhookInput.value.trim();
+      const channel = slackChannelInput.value.trim();
+      
+      // Save to localStorage
+      localStorage.setItem('slackWebhook', webhook);
+      localStorage.setItem('slackChannel', channel);
+      
+      if (webhook && webhook.includes('hooks.slack.com')) {
+        slackStatus.className = 'slack-status enabled';
+        slackStatus.textContent = `✅ Slack automation enabled - PDFs will be sent to ${channel || '#roof-inspections'}`;
+      } else {
+        slackStatus.className = 'slack-status disabled';
+        slackStatus.textContent = 'Slack automation disabled - Add webhook URL to enable automatic PDF delivery';
+      }
+    }
+
+    async function sendToSlack(pdfBlob, reportData) {
+      const webhook = slackWebhookInput.value.trim();
+      const channel = slackChannelInput.value.trim() || '#roof-inspections';
+      
+      if (!webhook || !webhook.includes('hooks.slack.com')) {
+        console.log('Slack webhook not configured, skipping Slack notification');
+        return;
+      }
+
+      try {
+        // Upload PDF to Firebase Storage first to get a public URL
+        const filename = `Inspection_Report_${reportData.address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${reportData.date}.pdf`;
+        const storageRef = storage.ref(`reports/${loadedReportId}/${filename}`);
+        await storageRef.put(pdfBlob, {contentType: 'application/pdf'});
+        const pdfUrl = await storageRef.getDownloadURL();
+
+        // Prepare Slack message
+        const message = {
+          channel: channel,
+          username: 'Roof Inspector Bot',
+          icon_emoji: ':house_with_garden:',
+          text: `🏠 New Roof Inspection Report Generated`,
+          attachments: [
+            {
+              color: '#007bff',
+              title: `Inspection Report - ${reportData.address}`,
+              fields: [
+                {
+                  title: 'Property',
+                  value: reportData.address,
+                  short: true
+                },
+                {
+                  title: 'Inspector',
+                  value: reportData.inspector,
+                  short: true
+                },
+                {
+                  title: 'Date',
+                  value: reportData.date,
+                  short: true
+                },
+                {
+                  title: 'Roof Type',
+                  value: reportData.roofType,
+                  short: true
+                },
+                {
+                  title: 'Roof Condition',
+                  value: reportData.roofCondition,
+                  short: true
+                },
+                {
+                  title: 'Observations',
+                  value: `${reportData.observations.length} issue(s) documented`,
+                  short: true
+                }
+              ],
+              actions: [
+                {
+                  type: 'button',
+                  text: '📄 Download PDF Report',
+                  url: pdfUrl,
+                  style: 'primary'
+                }
+              ],
+              footer: 'SEAL TOP ROOF Inspection System',
+              ts: Math.floor(Date.now() / 1000)
+            }
+          ]
+        };
+
+        // Send to Slack
+        const response = await fetch(webhook, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(message)
+        });
+
+        if (response.ok) {
+          console.log('✅ PDF report sent to Slack successfully');
+          // Show success notification
+          const successDiv = document.createElement('div');
+          successDiv.className = 'alert success';
+          successDiv.textContent = `✅ PDF report sent to Slack channel ${channel}`;
+          document.body.insertBefore(successDiv, document.body.firstChild);
+          setTimeout(() => successDiv.remove(), 5000);
+        } else {
+          throw new Error(`Slack API error: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('❌ Error sending to Slack:', error);
+        // Show error notification
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert';
+        errorDiv.style.backgroundColor = '#f8d7da';
+        errorDiv.style.color = '#721c24';
+        errorDiv.textContent = `❌ Failed to send to Slack: ${error.message}`;
+        document.body.insertBefore(errorDiv, document.body.firstChild);
+        setTimeout(() => errorDiv.remove(), 5000);
+      }
     }
 
     // ==== MapTiler Initialization ====
@@ -1065,7 +1252,7 @@
       }
     }
 
-    // ==== Enhanced PDF Generation with Fixed Text Encoding ====
+    // ==== Enhanced PDF Generation with Overview Map Image ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1099,13 +1286,33 @@
         const w = doc.internal.pageSize.getWidth();
         let y = 20;
 
-        // Add logo to PDF
-        const logoBase64 = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';
+        // Get logo image (try user's logo first, fallback to embedded)
+        let logoDataUrl = null;
+        try {
+          const logoImg = document.querySelector('.logo');
+          if (logoImg && logoImg.src && !logoImg.src.includes('data:')) {
+            // Convert user's PNG logo to base64
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = logoImg.naturalWidth;
+            canvas.height = logoImg.naturalHeight;
+            ctx.drawImage(logoImg, 0, 0);
+            logoDataUrl = canvas.toDataURL('image/png');
+          }
+        } catch (logoError) {
+          console.error('Error processing user logo:', logoError);
+        }
+
+        // Fallback to embedded SVG logo
+        if (!logoDataUrl) {
+          logoDataUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';
+        }
         
         try {
-          // Add logo (50x20 size)
-          doc.addImage(logoBase64, 'SVG', (w-50)/2, y, 50, 20);
-          y += 25;
+          // Add logo (60x24 size for better visibility)
+          const logoFormat = logoDataUrl.includes('data:image/png') ? 'PNG' : 'SVG';
+          doc.addImage(logoDataUrl, logoFormat, (w-60)/2, y, 60, 24);
+          y += 30;
         } catch (logoError) {
           console.error('Error adding logo:', logoError);
           // Continue without logo
@@ -1177,7 +1384,7 @@
           }
         });
 
-        // Overview map page (landscape) - FIXED
+        // Enhanced Overview map page (landscape) with ACTUAL MAP IMAGE
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
           // Add landscape page
@@ -1188,8 +1395,9 @@
           
           // Add logo to landscape page too
           try {
-            doc.addImage(logoBase64, 'SVG', (landscapeW-50)/2, y, 50, 20);
-            y += 25;
+            const logoFormat = logoDataUrl.includes('data:image/png') ? 'PNG' : 'SVG';
+            doc.addImage(logoDataUrl, logoFormat, (landscapeW-60)/2, y, 60, 24);
+            y += 30;
           } catch (logoError) {
             console.error('Error adding logo to landscape page:', logoError);
           }
@@ -1203,37 +1411,75 @@
           doc.setFont('helvetica','normal');
           doc.setFontSize(12);
           doc.text(`Total issue locations marked: ${locationsCount}`, 20, y); 
-          y += 10;
+          y += 15;
           
-          // Create a visual representation of the overview map
-          const mapWidth = landscapeW - 40;
-          const mapHeight = landscapeH - 120; // More space for coordinates
+          // Capture actual overview map as image
+          const overviewMapContainer = document.getElementById('overviewMap');
+          let mapImageDataUrl = null;
           
-          // Draw map border
-          doc.setDrawColor(0);
-          doc.setLineWidth(1);
-          doc.rect(20, y, mapWidth, mapHeight);
-          
-          // Add map title inside
-          doc.setFontSize(14);
-          doc.text('Interactive Overview Map', 30, y + 20);
-          doc.setFontSize(10);
-          doc.text('(Refer to web application for interactive satellite version)', 30, y + 30);
-          
-          // Visual representation of markers
-          savedObs.forEach((obs, index) => {
-            if (obs.location) {
-              // Draw a small circle to represent marker
-              const markerX = 50 + (index * 30);
-              const markerY = y + 50 + (index * 15);
-              doc.setFillColor(220, 38, 38); // Red color
-              doc.circle(markerX, markerY, 3, 'F');
-              doc.setFontSize(8);
-              doc.text(`${index + 1}`, markerX - 2, markerY + 2);
+          try {
+            if (overviewMapInstance && typeof html2canvas !== 'undefined') {
+              // Capture the actual MapTiler overview map
+              const mapCanvas = await html2canvas(overviewMapContainer, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 1,
+                width: overviewMapContainer.offsetWidth,
+                height: overviewMapContainer.offsetHeight
+              });
+              mapImageDataUrl = mapCanvas.toDataURL('image/png');
             }
-          });
+          } catch (mapCaptureError) {
+            console.error('Error capturing overview map:', mapCaptureError);
+          }
           
-          y += mapHeight + 10;
+          const mapWidth = landscapeW - 40;
+          const mapHeight = landscapeH - 140; // Space for coordinates
+          
+          if (mapImageDataUrl) {
+            // Add actual map image
+            try {
+              doc.addImage(mapImageDataUrl, 'PNG', 20, y, mapWidth, mapHeight);
+              y += mapHeight + 10;
+            } catch (mapImageError) {
+              console.error('Error adding map image to PDF:', mapImageError);
+              // Fallback to visual representation
+              addVisualMapRepresentation();
+            }
+          } else {
+            // Fallback: Visual representation
+            addVisualMapRepresentation();
+          }
+          
+          function addVisualMapRepresentation() {
+            // Draw map border
+            doc.setDrawColor(0);
+            doc.setLineWidth(1);
+            doc.rect(20, y, mapWidth, mapHeight);
+            
+            // Add map title inside
+            doc.setFontSize(14);
+            doc.text('Interactive Overview Map', 30, y + 20);
+            doc.setFontSize(10);
+            doc.text('(Refer to web application for interactive satellite version)', 30, y + 35);
+            
+            // Visual representation of markers
+            savedObs.forEach((obs, index) => {
+              if (obs.location) {
+                // Draw a small circle to represent marker
+                const markerX = 50 + (index * 40);
+                const markerY = y + 60 + (index * 20);
+                doc.setFillColor(220, 38, 38); // Red color
+                doc.circle(markerX, markerY, 4, 'F');
+                doc.setFontSize(10);
+                doc.setTextColor(255, 255, 255);
+                doc.text(`${index + 1}`, markerX - 3, markerY + 3);
+                doc.setTextColor(0, 0, 0);
+              }
+            });
+            
+            y += mapHeight + 10;
+          }
           
           // Add coordinates list at the bottom with small font
           doc.setFont('helvetica','bold');
@@ -1268,7 +1514,8 @@
         const storageRef=storage.ref(`reports/${loadedReportId}/${filename}`);
         await storageRef.put(blob,{contentType:'application/pdf'});
         const pdfUrl=await storageRef.getDownloadURL();
-        await ref.set({
+        
+        const reportData = {
           address,
           inspector,
           roofType,
@@ -1278,7 +1525,12 @@
           pdfUrl,
           propertyLocation,
           updatedAt:Date.now()
-        });
+        };
+        
+        await ref.set(reportData);
+        
+        // Send to Slack if configured
+        await sendToSlack(blob, reportData);
         
         alert('Report saved, PDF generated & uploaded successfully!');
         loadReports();
