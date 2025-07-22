@@ -294,6 +294,16 @@
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+
+    /* Hidden canvas for map capture */
+    .map-capture-canvas {
+      position: absolute;
+      top: -9999px;
+      left: -9999px;
+      width: 800px;
+      height: 600px;
+      z-index: -1;
+    }
   </style>
 
   <!-- Firebase -->
@@ -402,6 +412,9 @@
     </div>
   </div>
 
+  <!-- Hidden canvas for map capture -->
+  <div id="mapCaptureContainer" class="map-capture-canvas"></div>
+
   <!-- Photo Editing Modal -->
   <div id="photoEditModal" class="modal">
     <div class="modal-content">
@@ -450,6 +463,7 @@
     let currentCropper = null;
     let currentPhotoIndex = null;
     let currentObservationDiv = null;
+    let mapCaptureInstance = null; // For PDF map capture
 
     // ==== DOM refs ====
     const reportList = document.getElementById('reportList');
@@ -1151,6 +1165,78 @@
       `;
     }
 
+    // ==== Map Capture for PDF ====
+    async function createMapCaptureForPDF(observations) {
+      if (!maptilerLoaded || observations.length === 0) {
+        return null;
+      }
+
+      try {
+        // Create a hidden map container for capture
+        const captureContainer = document.getElementById('mapCaptureContainer');
+        captureContainer.innerHTML = '';
+        captureContainer.style.width = '800px';
+        captureContainer.style.height = '600px';
+        captureContainer.style.position = 'absolute';
+        captureContainer.style.top = '-9999px';
+        captureContainer.style.left = '-9999px';
+
+        // Calculate bounds for all observations
+        const bounds = new maptilersdk.LngLatBounds();
+        observations.forEach(obs => {
+          if (obs.location) {
+            bounds.extend([obs.location.lng, obs.location.lat]);
+          }
+        });
+
+        // Create map for capture
+        const captureMap = new maptilersdk.Map({
+          container: captureContainer,
+          style: maptilersdk.MapStyle.SATELLITE,
+          center: bounds.getCenter(),
+          zoom: 16,
+          preserveDrawingBuffer: true // Important for canvas capture
+        });
+
+        // Wait for map to load
+        await new Promise((resolve) => {
+          captureMap.on('load', resolve);
+        });
+
+        // Add markers
+        observations.forEach((obs, index) => {
+          if (obs.location) {
+            new maptilersdk.Marker({
+              color: '#dc2626'
+            })
+            .setLngLat([obs.location.lng, obs.location.lat])
+            .addTo(captureMap);
+          }
+        });
+
+        // Fit bounds if multiple locations
+        if (observations.length > 1) {
+          captureMap.fitBounds(bounds, { padding: 50 });
+        }
+
+        // Wait a bit for rendering
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Capture the map
+        const canvas = captureMap.getCanvas();
+        const mapImageDataUrl = canvas.toDataURL('image/png');
+
+        // Clean up
+        captureMap.remove();
+        captureContainer.innerHTML = '';
+
+        return mapImageDataUrl;
+      } catch (error) {
+        console.error('Error creating map capture:', error);
+        return null;
+      }
+    }
+
     // ==== Photo Handling with Editing ====
     function handlePhotoUpload(section, files) {
       Array.from(files).forEach(file => {
@@ -1252,7 +1338,7 @@
       }
     }
 
-    // ==== Enhanced PDF Generation with Overview Map Image ====
+    // ==== Enhanced PDF Generation with Real Map Capture ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1384,9 +1470,14 @@
           }
         });
 
-        // Enhanced Overview map page (landscape) with ACTUAL MAP IMAGE
+        // Enhanced Overview map page (landscape) with REAL MAP CAPTURE
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
+          console.log('Creating overview map for PDF...');
+          
+          // Create real map capture
+          const mapImageDataUrl = await createMapCaptureForPDF(savedObs);
+          
           // Add landscape page
           doc.addPage('a4', 'landscape');
           const landscapeW = doc.internal.pageSize.getWidth();
@@ -1413,32 +1504,13 @@
           doc.text(`Total issue locations marked: ${locationsCount}`, 20, y); 
           y += 15;
           
-          // Capture actual overview map as image
-          const overviewMapContainer = document.getElementById('overviewMap');
-          let mapImageDataUrl = null;
-          
-          try {
-            if (overviewMapInstance && typeof html2canvas !== 'undefined') {
-              // Capture the actual MapTiler overview map
-              const mapCanvas = await html2canvas(overviewMapContainer, {
-                useCORS: true,
-                allowTaint: true,
-                scale: 1,
-                width: overviewMapContainer.offsetWidth,
-                height: overviewMapContainer.offsetHeight
-              });
-              mapImageDataUrl = mapCanvas.toDataURL('image/png');
-            }
-          } catch (mapCaptureError) {
-            console.error('Error capturing overview map:', mapCaptureError);
-          }
-          
           const mapWidth = landscapeW - 40;
           const mapHeight = landscapeH - 140; // Space for coordinates
           
           if (mapImageDataUrl) {
             // Add actual map image
             try {
+              console.log('Adding real map image to PDF');
               doc.addImage(mapImageDataUrl, 'PNG', 20, y, mapWidth, mapHeight);
               y += mapHeight + 10;
             } catch (mapImageError) {
@@ -1448,6 +1520,7 @@
             }
           } else {
             // Fallback: Visual representation
+            console.log('Using fallback visual representation');
             addVisualMapRepresentation();
           }
           
