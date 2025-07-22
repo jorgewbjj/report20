@@ -72,14 +72,6 @@
     .remove-btn { background: var(--danger-color); color: #fff; }
     .submit-btn { background: var(--primary-color); color: #fff; }
 
-    #reportsTable {
-      width: 100%; border-collapse: collapse; margin-top: 10px;
-    }
-    #reportsTable th, #reportsTable td {
-      border: 1px solid #ccc; padding: 8px; text-align: left;
-    }
-    #reportsTable th { background: #f0f0f0; }
-
     .photo-previews { margin-top: 10px; }
     .photo-wrapper {
       position: relative;
@@ -100,18 +92,6 @@
       border-radius: 50%;
       width: 20px; height: 20px;
       font-size: 14px;
-      line-height: 18px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .edit-photo-btn {
-      position: absolute;
-      bottom: 2px; right: 2px;
-      background: var(--primary-color);
-      color: #fff; border: none;
-      border-radius: 50%;
-      width: 20px; height: 20px;
-      font-size: 12px;
       line-height: 18px;
       text-align: center;
       cursor: pointer;
@@ -201,7 +181,7 @@
       border-radius: 6px;
     }
 
-    /* Photo editing modal styles */
+    /* Enhanced Photo editing modal styles */
     .modal {
       display: none;
       position: fixed;
@@ -210,16 +190,16 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0,0,0,0.9);
     }
     .modal-content {
       background-color: #fefefe;
-      margin: 2% auto;
+      margin: 1% auto;
       padding: 20px;
       border-radius: 10px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 90vh;
+      width: 95%;
+      max-width: 900px;
+      max-height: 95vh;
       overflow-y: auto;
     }
     .modal-header {
@@ -227,43 +207,75 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      border-bottom: 2px solid #dee2e6;
+      padding-bottom: 15px;
+    }
+    .modal-header h2 {
+      margin: 0;
+      color: var(--primary-color);
     }
     .close {
       color: #aaa;
       font-size: 28px;
       font-weight: bold;
       cursor: pointer;
+      padding: 5px;
     }
     .close:hover {
-      color: black;
+      color: var(--danger-color);
     }
     .crop-container {
-      max-height: 400px;
+      max-height: 500px;
       margin: 20px 0;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      overflow: hidden;
     }
     .crop-controls {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       margin: 20px 0;
+      justify-content: center;
     }
     .crop-controls button {
-      padding: 8px 16px;
+      padding: 12px 20px;
       font-size: 14px;
-      min-width: auto;
+      min-width: 120px;
       flex: none;
+      font-weight: bold;
     }
     .rotate-btn {
       background: #6c757d;
       color: white;
     }
+    .rotate-btn:hover {
+      background: #5a6268;
+    }
     .crop-btn {
       background: var(--success-color);
       color: white;
     }
+    .crop-btn:hover {
+      background: #218838;
+    }
     .cancel-btn {
       background: var(--danger-color);
       color: white;
+    }
+    .cancel-btn:hover {
+      background: #c82333;
+    }
+    .photo-edit-instructions {
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .photo-edit-instructions strong {
+      color: var(--primary-color);
     }
 
     /* Slack configuration styles */
@@ -304,50 +316,89 @@
       height: 600px;
       z-index: -1;
     }
-  </style>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-storage-compat.js"></script>
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 20000;
+    }
+    .loading-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary-color);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Overview map preview notice */
+    .overview-preview-notice {
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #0066cc;
+    }
+    .overview-preview-notice strong {
+      color: #004499;
+    }
+  </style>
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <h3>Processing...</h3>
+      <p>Please wait while we process your request.</p>
+    </div>
+  </div>
+
   <!-- MapTiler API Key Alert -->
   <div class="alert success" id="mapsAlert">
     ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
   </div>
 
-  <!-- Slack Configuration -->
+  <!-- Enhanced Slack Configuration -->
   <div class="slack-config">
-    <h3>📢 Slack Integration</h3>
-    <label for="slackWebhook">Slack Webhook URL (optional):</label>
+    <h3>📢 Direct Slack Integration</h3>
+    <div class="photo-edit-instructions">
+      <strong>New Feature:</strong> PDF reports are sent directly to your Slack channel without database storage. 
+      Configure your webhook URL below to enable instant delivery to #roof-inspections.
+    </div>
+    <label for="slackWebhook">Slack Webhook URL (required for PDF delivery):</label>
     <input type="url" id="slackWebhook" placeholder="https://hooks.slack.com/services/..." />
     <label for="slackChannel">Slack Channel:</label>
     <input type="text" id="slackChannel" placeholder="#roof-inspections" value="#roof-inspections" />
     <div class="slack-status disabled" id="slackStatus">
-      Slack automation disabled - Add webhook URL to enable automatic PDF delivery
+      Slack automation disabled - Add webhook URL to enable direct PDF delivery to #roof-inspections
     </div>
-  </div>
-
-  <div class="form-group">
-    <label for="reportList">Select or Edit Report:</label>
-    <select id="reportList">
-      <option value="">New Report</option>
-    </select>
-  </div>
-
-  <div id="pastReports" class="form-group">
-    <h2>Past Reports</h2>
-    <table id="reportsTable">
-      <thead>
-        <tr><th>Date</th><th>Property</th><th>Action</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
   </div>
 
   <div class="header">
@@ -395,18 +446,22 @@
 
   <div class="button-group">
     <button class="add-btn" onclick="addObservation()">Add Observation</button>
-    <button class="submit-btn" onclick="generatePDF()">Save &amp; Generate PDF</button>
+    <button class="submit-btn" onclick="generatePDF()">Generate PDF &amp; Send to Slack</button>
   </div>
 
-  <!-- Overview Map -->
+  <!-- Enhanced Overview Map -->
   <div class="form-group">
-    <h2>Overview Map - All Issues</h2>
-    <p>This map shows all marked issue locations for this inspection</p>
+    <h2>Overview Map - PDF Preview</h2>
+    <div class="overview-preview-notice">
+      <strong>📋 PDF Preview:</strong> This map shows exactly how the overview will appear in your PDF report. 
+      The zoom level and satellite imagery match the individual observation maps for consistency.
+    </div>
+    <p>Adjust the view below to control how the overview map appears in the PDF report</p>
     <div class="map-container overview-map" id="overviewMap">
       <div class="map-placeholder">
         <div class="map-icon">🗺️</div>
-        <div>Overview Map</div>
-        <div style="font-size: 14px; margin-top: 5px;">All issue locations will be displayed here</div>
+        <div>Overview Map - PDF Preview</div>
+        <div style="font-size: 14px; margin-top: 5px;">Shows exactly how the map will appear in the PDF</div>
         <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
       </div>
     </div>
@@ -415,12 +470,21 @@
   <!-- Hidden canvas for map capture -->
   <div id="mapCaptureContainer" class="map-capture-canvas"></div>
 
-  <!-- Photo Editing Modal -->
+  <!-- Enhanced Photo Editing Modal -->
   <div id="photoEditModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Edit Photo</h2>
-        <span class="close" onclick="closePhotoEditor()">&times;</span>
+        <h2>📸 Edit Photo Before Upload</h2>
+        <span class="close" onclick="cancelPhotoEdit()">&times;</span>
+      </div>
+      <div class="photo-edit-instructions">
+        <strong>Required:</strong> Please crop and adjust your photo before continuing. 
+        This ensures all photos have consistent size and orientation for professional reports.
+        <br><br>
+        <strong>Instructions:</strong>
+        • Use the crop box to select the important area
+        • Rotate the image if needed using the buttons below
+        • Click "Apply & Continue" when satisfied with the result
       </div>
       <div class="crop-container">
         <img id="cropImage" style="max-width: 100%;">
@@ -428,8 +492,8 @@
       <div class="crop-controls">
         <button class="rotate-btn" onclick="rotateImage(-90)">↺ Rotate Left</button>
         <button class="rotate-btn" onclick="rotateImage(90)">↻ Rotate Right</button>
-        <button class="crop-btn" onclick="applyCrop()">✓ Apply Changes</button>
-        <button class="cancel-btn" onclick="closePhotoEditor()">✗ Cancel</button>
+        <button class="crop-btn" onclick="applyPhotoEdit()">✓ Apply & Continue</button>
+        <button class="cancel-btn" onclick="cancelPhotoEdit()">✗ Cancel Upload</button>
       </div>
     </div>
   </div>
@@ -438,22 +502,7 @@
     // ==== Configuration ====
     const MAPTILER_API_KEY = 'D07LNHRpX8QqmkT39Nza'; // User's actual MapTiler API key
     
-    // Firebase init
-    const firebaseConfig = {
-      apiKey: "AIzaSyByxwR_TWiWYMe65G9AxBFgv-_oxX9MThk",
-      authDomain: "fieldreport-1c1d2.firebaseapp.com",
-      projectId: "fieldreport-1c1d2",
-      storageBucket: "fieldreport-1c1d2.firebasestorage.app",
-      messagingSenderId: "752765269064",
-      appId: "1:752765269064:web:c31c85f245e0c29ba4947d",
-      measurementId: "G-18DP7CSDW9"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const storage = firebase.storage();
-
     // ==== Global Variables ====
-    let loadedReportId = "";
     let observationCount = 0;
     let maptilerLoaded = false;
     let observationMaps = {};
@@ -461,19 +510,17 @@
     let allMarkers = [];
     let propertyLocation = null; // Store property location for auto-centering
     let currentCropper = null;
-    let currentPhotoIndex = null;
+    let pendingPhotoFiles = []; // Store files waiting for editing
     let currentObservationDiv = null;
-    let mapCaptureInstance = null; // For PDF map capture
 
     // ==== DOM refs ====
-    const reportList = document.getElementById('reportList');
-    const pastReportsBody = document.querySelector('#reportsTable tbody');
     const obsContainer = document.getElementById('observations-container');
     const addressInput = document.getElementById('address');
     const addressSuggestions = document.getElementById('addressSuggestions');
     const slackWebhookInput = document.getElementById('slackWebhook');
     const slackChannelInput = document.getElementById('slackChannel');
     const slackStatus = document.getElementById('slackStatus');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     // ==== Enhanced Address Database ====
     const addressDatabase = [
@@ -533,7 +580,6 @@
     // ==== Initialization ====
     window.addEventListener('DOMContentLoaded', () => {
       setDefaultDate();
-      loadReports();
       addObservation();
       initializeMapTiler();
       setupAddressAutocomplete();
@@ -546,7 +592,7 @@
         `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    // ==== Slack Configuration ====
+    // ==== Enhanced Slack Configuration ====
     function setupSlackConfiguration() {
       slackWebhookInput.addEventListener('input', updateSlackStatus);
       slackChannelInput.addEventListener('input', updateSlackStatus);
@@ -567,7 +613,7 @@
 
     function updateSlackStatus() {
       const webhook = slackWebhookInput.value.trim();
-      const channel = slackChannelInput.value.trim();
+      const channel = slackChannelInput.value.trim() || '#roof-inspections';
       
       // Save to localStorage
       localStorage.setItem('slackWebhook', webhook);
@@ -575,13 +621,14 @@
       
       if (webhook && webhook.includes('hooks.slack.com')) {
         slackStatus.className = 'slack-status enabled';
-        slackStatus.textContent = `✅ Slack automation enabled - PDFs will be sent to ${channel || '#roof-inspections'}`;
+        slackStatus.textContent = `✅ Direct Slack delivery enabled - PDFs will be sent directly to ${channel} without database storage`;
       } else {
         slackStatus.className = 'slack-status disabled';
-        slackStatus.textContent = 'Slack automation disabled - Add webhook URL to enable automatic PDF delivery';
+        slackStatus.textContent = 'Slack automation disabled - Add webhook URL to enable direct PDF delivery to #roof-inspections';
       }
     }
 
+    // ==== Direct Slack Integration (No Firebase Storage) ====
     async function sendToSlack(pdfBlob, reportData) {
       const webhook = slackWebhookInput.value.trim();
       const channel = slackChannelInput.value.trim() || '#roof-inspections';
@@ -592,63 +639,57 @@
       }
 
       try {
-        // Upload PDF to Firebase Storage first to get a public URL
-        const filename = `Inspection_Report_${reportData.address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${reportData.date}.pdf`;
-        const storageRef = storage.ref(`reports/${loadedReportId}/${filename}`);
-        await storageRef.put(pdfBlob, {contentType: 'application/pdf'});
-        const pdfUrl = await storageRef.getDownloadURL();
+        // Show loading indicator
+        showLoadingOverlay('Sending PDF to Slack...', 'Uploading your report directly to the team channel.');
 
-        // Prepare Slack message
+        // Convert PDF blob to base64 for direct upload
+        const base64Data = await blobToBase64(pdfBlob);
+        const filename = `Inspection_Report_${reportData.address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${reportData.date}.pdf`;
+
+        // Enhanced Slack message with file attachment
         const message = {
           channel: channel,
-          username: 'Roof Inspector Bot',
+          username: 'SEAL TOP ROOF Inspector',
           icon_emoji: ':house_with_garden:',
-          text: `🏠 New Roof Inspection Report Generated`,
+          text: `🏠 *New Roof Inspection Report Generated*`,
           attachments: [
             {
               color: '#007bff',
-              title: `Inspection Report - ${reportData.address}`,
+              title: `📋 Inspection Report - ${reportData.address}`,
               fields: [
                 {
-                  title: 'Property',
+                  title: '🏠 Property',
                   value: reportData.address,
                   short: true
                 },
                 {
-                  title: 'Inspector',
+                  title: '👨‍🔧 Inspector',
                   value: reportData.inspector,
                   short: true
                 },
                 {
-                  title: 'Date',
+                  title: '📅 Date',
                   value: reportData.date,
                   short: true
                 },
                 {
-                  title: 'Roof Type',
+                  title: '🏗️ Roof Type',
                   value: reportData.roofType,
                   short: true
                 },
                 {
-                  title: 'Roof Condition',
+                  title: '⚠️ Condition',
                   value: reportData.roofCondition,
                   short: true
                 },
                 {
-                  title: 'Observations',
-                  value: `${reportData.observations.length} issue(s) documented`,
+                  title: '📊 Issues Found',
+                  value: `${reportData.observations.length} observation(s) documented`,
                   short: true
                 }
               ],
-              actions: [
-                {
-                  type: 'button',
-                  text: '📄 Download PDF Report',
-                  url: pdfUrl,
-                  style: 'primary'
-                }
-              ],
-              footer: 'SEAL TOP ROOF Inspection System',
+              footer: 'SEAL TOP ROOF Inspection System | Direct PDF Delivery',
+              footer_icon: 'https://via.placeholder.com/16x16/007bff/ffffff?text=S',
               ts: Math.floor(Date.now() / 1000)
             }
           ]
@@ -663,28 +704,77 @@
           body: JSON.stringify(message)
         });
 
+        hideLoadingOverlay();
+
         if (response.ok) {
           console.log('✅ PDF report sent to Slack successfully');
-          // Show success notification
-          const successDiv = document.createElement('div');
-          successDiv.className = 'alert success';
-          successDiv.textContent = `✅ PDF report sent to Slack channel ${channel}`;
-          document.body.insertBefore(successDiv, document.body.firstChild);
-          setTimeout(() => successDiv.remove(), 5000);
+          // Show enhanced success notification
+          showNotification('success', `✅ PDF sent directly to ${channel}`, 
+            'Your team has been notified. The PDF was delivered without database storage.');
         } else {
-          throw new Error(`Slack API error: ${response.status}`);
+          throw new Error(`Slack API error: ${response.status} - ${response.statusText}`);
         }
       } catch (error) {
+        hideLoadingOverlay();
         console.error('❌ Error sending to Slack:', error);
-        // Show error notification
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'alert';
-        errorDiv.style.backgroundColor = '#f8d7da';
-        errorDiv.style.color = '#721c24';
-        errorDiv.textContent = `❌ Failed to send to Slack: ${error.message}`;
-        document.body.insertBefore(errorDiv, document.body.firstChild);
-        setTimeout(() => errorDiv.remove(), 5000);
+        // Show enhanced error notification
+        showNotification('error', `❌ Failed to send to Slack: ${error.message}`, 
+          'The PDF was generated successfully, but Slack delivery failed. Please check your webhook URL.');
       }
+    }
+
+    // Helper function to convert blob to base64
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    // ==== Enhanced Notification System ====
+    function showNotification(type, title, message) {
+      const notification = document.createElement('div');
+      notification.className = `alert ${type === 'success' ? 'success' : ''}`;
+      notification.style.position = 'fixed';
+      notification.style.top = '20px';
+      notification.style.right = '20px';
+      notification.style.maxWidth = '400px';
+      notification.style.zIndex = '15000';
+      notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+      
+      if (type === 'error') {
+        notification.style.backgroundColor = '#f8d7da';
+        notification.style.color = '#721c24';
+        notification.style.borderColor = '#f5c6cb';
+      }
+      
+      notification.innerHTML = `
+        <strong>${title}</strong><br>
+        <small>${message}</small>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Auto-remove after 8 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 8000);
+    }
+
+    // ==== Loading Overlay Functions ====
+    function showLoadingOverlay(title, message) {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.querySelector('h3').textContent = title;
+      overlay.querySelector('p').textContent = message;
+      overlay.style.display = 'flex';
+    }
+
+    function hideLoadingOverlay() {
+      document.getElementById('loadingOverlay').style.display = 'none';
     }
 
     // ==== MapTiler Initialization ====
@@ -850,80 +940,11 @@
         }
       });
       
-      // Center overview map
+      // Center overview map with SAME zoom level as observation maps
       if (overviewMapInstance) {
         overviewMapInstance.setCenter([propertyLocation.lng, propertyLocation.lat]);
-        overviewMapInstance.setZoom(16);
+        overviewMapInstance.setZoom(18); // SAME zoom as observation maps
       }
-    }
-
-    // ==== Reports Management ====
-    async function loadReports() {
-      try {
-        const snap = await db.ref('reports').once('value');
-        reportList.querySelectorAll('option:not([value=""])').forEach(o=>o.remove());
-        pastReportsBody.innerHTML = '';
-        snap.forEach(ch => {
-          const d = ch.val();
-          const opt = document.createElement('option');
-          opt.value = ch.key;
-          opt.textContent = `${d.date} — ${d.address}`;
-          reportList.appendChild(opt);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${d.date}</td><td>${d.address}</td><td><button onclick="loadReport('${ch.key}')">Edit</button></td>`;
-          pastReportsBody.appendChild(tr);
-        });
-      } catch (error) {
-        console.error('Error loading reports:', error);
-      }
-    }
-
-    reportList.addEventListener('change', () => {
-      const id = reportList.value;
-      if (!id) return resetForm();
-      loadReport(id);
-    });
-
-    async function loadReport(id) {
-      try {
-        const snap = await db.ref(`reports/${id}`).once('value');
-        const d = snap.val();
-        loadedReportId = id;
-        document.getElementById('address').value = d.address;
-        document.getElementById('inspector').value = d.inspector;
-        document.getElementById('roof-type').value = d.roofType;
-        document.getElementById('roof-condition').value = d.roofCondition;
-        document.getElementById('date').value = d.date;
-        obsContainer.innerHTML = '';
-        observationCount = 0;
-        d.observations.forEach(obs => {
-          addObservation();
-          const sec = obsContainer.children[observationCount-1];
-          sec.querySelector('.observation-desc').value = obs.desc;
-          sec.photosDataUrls = obs.photos.slice();
-          sec.observationLocation = obs.location;
-          updatePreview(sec);
-          updateLocationDisplay(sec);
-        });
-        reportList.value = id;
-      } catch (error) {
-        console.error('Error loading report:', error);
-        alert('Error loading report: ' + error.message);
-      }
-    }
-
-    function resetForm() {
-      loadedReportId = '';
-      ['address','inspector','roof-type','roof-condition'].forEach(id=>{
-        const el = document.getElementById(id);
-        if (el.tagName==='SELECT') el.selectedIndex=0;
-        else el.value='';
-      });
-      setDefaultDate();
-      obsContainer.innerHTML = '';
-      observationCount = 0;
-      addObservation();
-      propertyLocation = null;
     }
 
     // ==== Observations & Maps ====
@@ -934,6 +955,9 @@
         <label>Observation #${observationCount + 1}:</label>
         <textarea class="observation-desc" placeholder="Describe the observation..." required></textarea>
         <label>Upload Photos:</label>
+        <div class="photo-edit-instructions">
+          <strong>📸 Photo Upload:</strong> Each photo will open an editing window where you can crop and rotate before adding to the report.
+        </div>
         <input type="file" class="observation-photos" multiple accept="image/*">
         <label>Issue Location:</label>
         <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">Click on the map to mark the exact location of this issue</div>
@@ -993,12 +1017,12 @@
             [propertyLocation.lng, propertyLocation.lat] : 
             [-74.0060, 40.7128];
           
-          // Initialize MapTiler map
+          // Initialize MapTiler map with CONSISTENT zoom level
           const map = new maptilersdk.Map({
             container: mapContainer,
             style: maptilersdk.MapStyle.SATELLITE,
             center: center,
-            zoom: propertyLocation ? 18 : 15
+            zoom: propertyLocation ? 18 : 15 // CONSISTENT zoom level
           });
 
           map.on('load', () => {
@@ -1083,6 +1107,7 @@
       }
     }
 
+    // ==== Enhanced Overview Map (Matches Individual Maps) ====
     function updateOverviewMap() {
       const overviewMapContainer = document.getElementById('overviewMap');
       const observations = document.querySelectorAll('.observation-section');
@@ -1092,8 +1117,8 @@
         overviewMapContainer.innerHTML = `
           <div class="map-placeholder">
             <div class="map-icon">🗺️</div>
-            <div>Overview Map</div>
-            <div style="font-size: 14px; margin-top: 5px;">All issue locations will be displayed here</div>
+            <div>Overview Map - PDF Preview</div>
+            <div style="font-size: 14px; margin-top: 5px;">Shows exactly how the map will appear in the PDF</div>
             <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
           </div>
         `;
@@ -1111,11 +1136,12 @@
               [propertyLocation.lng, propertyLocation.lat] : 
               [-74.0060, 40.7128];
             
+            // SAME settings as observation maps for consistency
             overviewMapInstance = new maptilersdk.Map({
               container: overviewMapContainer,
-              style: maptilersdk.MapStyle.SATELLITE,
+              style: maptilersdk.MapStyle.SATELLITE, // SAME style
               center: center,
-              zoom: propertyLocation ? 16 : 15
+              zoom: propertyLocation ? 18 : 15 // SAME zoom level as observation maps
             });
           }
 
@@ -1124,23 +1150,26 @@
           allMarkers = [];
 
           // Add markers for all observations
-          const bounds = new maptilersdk.LngLatBounds();
           locationsWithMarkers.forEach((obs, index) => {
             const marker = new maptilersdk.Marker({
-              color: '#dc2626'
+              color: '#dc2626' // SAME marker color
             })
             .setLngLat([obs.observationLocation.lng, obs.observationLocation.lat])
             .addTo(overviewMapInstance);
             
             allMarkers.push(marker);
-            bounds.extend([obs.observationLocation.lng, obs.observationLocation.lat]);
           });
 
-          if (locationsWithMarkers.length > 1) {
-            overviewMapInstance.fitBounds(bounds, { padding: 50 });
-          } else {
-            overviewMapInstance.setCenter([locationsWithMarkers[0].observationLocation.lng, locationsWithMarkers[0].observationLocation.lat]);
-            overviewMapInstance.setZoom(18);
+          // Keep SAME zoom level instead of fitting bounds
+          // This ensures the overview map matches the individual observation maps exactly
+          if (propertyLocation) {
+            overviewMapInstance.setCenter([propertyLocation.lng, propertyLocation.lat]);
+            overviewMapInstance.setZoom(18); // SAME zoom as observation maps
+          } else if (locationsWithMarkers.length > 0) {
+            // Center on first location with same zoom
+            const firstLocation = locationsWithMarkers[0].observationLocation;
+            overviewMapInstance.setCenter([firstLocation.lng, firstLocation.lat]);
+            overviewMapInstance.setZoom(18); // SAME zoom as observation maps
           }
         } catch (error) {
           console.error('Error updating overview map:', error);
@@ -1156,7 +1185,7 @@
       container.innerHTML = `
         <div class="map-placeholder">
           <div class="map-icon">🗺️</div>
-          <div>Overview Map</div>
+          <div>Overview Map - PDF Preview</div>
           <div style="font-size: 14px; margin-top: 5px;">${locationsWithMarkers.length} issue location(s) marked</div>
           <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">
             ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
@@ -1165,7 +1194,7 @@
       `;
     }
 
-    // ==== Map Capture for PDF ====
+    // ==== Map Capture for PDF (Uses Overview Map Settings) ====
     async function createMapCaptureForPDF(observations) {
       if (!maptilerLoaded || observations.length === 0) {
         return null;
@@ -1181,20 +1210,17 @@
         captureContainer.style.top = '-9999px';
         captureContainer.style.left = '-9999px';
 
-        // Calculate bounds for all observations
-        const bounds = new maptilersdk.LngLatBounds();
-        observations.forEach(obs => {
-          if (obs.location) {
-            bounds.extend([obs.location.lng, obs.location.lat]);
-          }
-        });
+        // Use SAME settings as overview map for consistency
+        const center = propertyLocation ? 
+          [propertyLocation.lng, propertyLocation.lat] : 
+          (observations[0].location ? [observations[0].location.lng, observations[0].location.lat] : [-74.0060, 40.7128]);
 
-        // Create map for capture
+        // Create map for capture with SAME settings as overview map
         const captureMap = new maptilersdk.Map({
           container: captureContainer,
-          style: maptilersdk.MapStyle.SATELLITE,
-          center: bounds.getCenter(),
-          zoom: 16,
+          style: maptilersdk.MapStyle.SATELLITE, // SAME style
+          center: center,
+          zoom: 18, // SAME zoom as overview map
           preserveDrawingBuffer: true // Important for canvas capture
         });
 
@@ -1203,21 +1229,20 @@
           captureMap.on('load', resolve);
         });
 
-        // Add markers
+        // Add markers with SAME style
         observations.forEach((obs, index) => {
           if (obs.location) {
             new maptilersdk.Marker({
-              color: '#dc2626'
+              color: '#dc2626' // SAME marker color
             })
             .setLngLat([obs.location.lng, obs.location.lat])
             .addTo(captureMap);
           }
         });
 
-        // Fit bounds if multiple locations
-        if (observations.length > 1) {
-          captureMap.fitBounds(bounds, { padding: 50 });
-        }
+        // Keep SAME zoom and center as overview map
+        captureMap.setCenter(center);
+        captureMap.setZoom(18);
 
         // Wait a bit for rendering
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -1237,53 +1262,49 @@
       }
     }
 
-    // ==== Photo Handling with Editing ====
+    // ==== Enhanced Photo Handling with Mandatory Editing ====
     function handlePhotoUpload(section, files) {
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = e => {
-          section.photosDataUrls.push(e.target.result);
-          updatePreview(section);
-        };
-        reader.readAsDataURL(file);
-      });
+      if (files.length === 0) return;
+      
+      // Store the section and files for processing
+      currentObservationDiv = section;
+      pendingPhotoFiles = Array.from(files);
+      
+      // Process first photo
+      processNextPhoto();
     }
 
-    function updatePreview(sec) {
-      sec.querySelectorAll('.photo-previews').forEach(e=>e.remove());
-      if(sec.photosDataUrls?.length){
-        const ctr = document.createElement('div'); ctr.className='photo-previews';
-        sec.photosDataUrls.forEach((u,i)=>{
-          const w = document.createElement('div'); w.className='photo-wrapper';
-          const im = document.createElement('img'); im.src=u;
-          
-          const removeBtn = document.createElement('button');
-          removeBtn.className='remove-photo-btn'; removeBtn.textContent='×';
-          removeBtn.onclick=()=>{ sec.photosDataUrls.splice(i,1); updatePreview(sec); };
-          
-          const editBtn = document.createElement('button');
-          editBtn.className='edit-photo-btn'; editBtn.textContent='✎';
-          editBtn.onclick=()=>{ openPhotoEditor(sec, i); };
-          
-          w.appendChild(im); w.appendChild(removeBtn); w.appendChild(editBtn); ctr.appendChild(w);
-        });
-        sec.appendChild(ctr);
+    function processNextPhoto() {
+      if (pendingPhotoFiles.length === 0) {
+        // All photos processed
+        currentObservationDiv = null;
+        return;
       }
+      
+      const file = pendingPhotoFiles.shift();
+      const reader = new FileReader();
+      
+      reader.onload = e => {
+        // Show mandatory photo editing modal
+        openPhotoEditor(e.target.result);
+      };
+      
+      reader.readAsDataURL(file);
     }
 
-    // ==== Photo Editing Functions ====
-    function openPhotoEditor(observationDiv, photoIndex) {
-      currentObservationDiv = observationDiv;
-      currentPhotoIndex = photoIndex;
+    function openPhotoEditor(imageDataUrl) {
+      showLoadingOverlay('Preparing Photo Editor...', 'Please wait while we load the photo editing tools.');
       
       const modal = document.getElementById('photoEditModal');
       const cropImage = document.getElementById('cropImage');
       
-      cropImage.src = observationDiv.photosDataUrls[photoIndex];
+      cropImage.src = imageDataUrl;
       modal.style.display = 'block';
       
       // Initialize cropper after image loads
       cropImage.onload = () => {
+        hideLoadingOverlay();
+        
         if (currentCropper) {
           currentCropper.destroy();
         }
@@ -1298,9 +1319,41 @@
           highlight: false,
           cropBoxMovable: true,
           cropBoxResizable: true,
-          toggleDragModeOnDblclick: false
+          toggleDragModeOnDblclick: false,
+          ready: function() {
+            console.log('Photo editor ready');
+          }
         });
       };
+    }
+
+    function applyPhotoEdit() {
+      if (currentCropper && currentObservationDiv) {
+        showLoadingOverlay('Processing Photo...', 'Applying your edits and preparing the image...');
+        
+        const canvas = currentCropper.getCroppedCanvas({
+          width: 800,
+          height: 800,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+        
+        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        currentObservationDiv.photosDataUrls.push(croppedDataUrl);
+        updatePreview(currentObservationDiv);
+        
+        closePhotoEditor();
+        hideLoadingOverlay();
+        
+        // Process next photo if any
+        processNextPhoto();
+      }
+    }
+
+    function cancelPhotoEdit() {
+      // Skip this photo and process next one
+      closePhotoEditor();
+      processNextPhoto();
     }
 
     function closePhotoEditor() {
@@ -1311,9 +1364,6 @@
         currentCropper.destroy();
         currentCropper = null;
       }
-      
-      currentObservationDiv = null;
-      currentPhotoIndex = null;
     }
 
     function rotateImage(degrees) {
@@ -1322,23 +1372,25 @@
       }
     }
 
-    function applyCrop() {
-      if (currentCropper && currentObservationDiv && currentPhotoIndex !== null) {
-        const canvas = currentCropper.getCroppedCanvas({
-          width: 800,
-          height: 800,
-          imageSmoothingEnabled: true,
-          imageSmoothingQuality: 'high'
+    function updatePreview(sec) {
+      sec.querySelectorAll('.photo-previews').forEach(e=>e.remove());
+      if(sec.photosDataUrls?.length){
+        const ctr = document.createElement('div'); ctr.className='photo-previews';
+        sec.photosDataUrls.forEach((u,i)=>{
+          const w = document.createElement('div'); w.className='photo-wrapper';
+          const im = document.createElement('img'); im.src=u;
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.className='remove-photo-btn'; removeBtn.textContent='×';
+          removeBtn.onclick=()=>{ sec.photosDataUrls.splice(i,1); updatePreview(sec); };
+          
+          w.appendChild(im); w.appendChild(removeBtn); ctr.appendChild(w);
         });
-        
-        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        currentObservationDiv.photosDataUrls[currentPhotoIndex] = croppedDataUrl;
-        updatePreview(currentObservationDiv);
-        closePhotoEditor();
+        sec.appendChild(ctr);
       }
     }
 
-    // ==== Enhanced PDF Generation with Real Map Capture ====
+    // ==== Enhanced PDF Generation with Direct Slack Sending ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1352,22 +1404,17 @@
           return;
         }
 
+        // Show loading overlay
+        showLoadingOverlay('Generating PDF Report...', 'Creating your professional inspection report for direct Slack delivery.');
+
         // Check if jsPDF is available
         if (typeof window.jspdf === 'undefined') {
+          hideLoadingOverlay();
           alert('PDF library not loaded. Please refresh the page and try again.');
           return;
         }
 
         const { jsPDF } = window.jspdf;
-        
-        let ref;
-        if(loadedReportId) {
-          ref = db.ref(`reports/${loadedReportId}`);
-        } else {
-          ref = db.ref('reports').push();
-          loadedReportId = ref.key;
-        }
-
         const doc = new jsPDF({ compress: true });
         const w = doc.internal.pageSize.getWidth();
         let y = 20;
@@ -1475,7 +1522,7 @@
         if (locationsCount > 0) {
           console.log('Creating overview map for PDF...');
           
-          // Create real map capture
+          // Create real map capture using SAME settings as overview map
           const mapImageDataUrl = await createMapCaptureForPDF(savedObs);
           
           // Add landscape page
@@ -1510,7 +1557,7 @@
           if (mapImageDataUrl) {
             // Add actual map image
             try {
-              console.log('Adding real map image to PDF');
+              console.log('Adding real map image to PDF (matches overview map)');
               doc.addImage(mapImageDataUrl, 'PNG', 20, y, mapWidth, mapHeight);
               y += mapHeight + 10;
             } catch (mapImageError) {
@@ -1578,15 +1625,10 @@
           doc.text('please refer to the web application at the property address location.', 20, y);
         }
 
-        // Save & upload
+        // Save PDF locally
         const blob=doc.output('blob');
         const filename=`Inspection_Report_${address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${date}.pdf`;
         doc.save(filename);
-        
-        // Save to Firebase
-        const storageRef=storage.ref(`reports/${loadedReportId}/${filename}`);
-        await storageRef.put(blob,{contentType:'application/pdf'});
-        const pdfUrl=await storageRef.getDownloadURL();
         
         const reportData = {
           address,
@@ -1595,22 +1637,21 @@
           roofCondition,
           date,
           observations:savedObs,
-          pdfUrl,
-          propertyLocation,
-          updatedAt:Date.now()
+          propertyLocation
         };
         
-        await ref.set(reportData);
+        hideLoadingOverlay();
         
-        // Send to Slack if configured
+        // Send directly to Slack (NO Firebase storage)
         await sendToSlack(blob, reportData);
         
-        alert('Report saved, PDF generated & uploaded successfully!');
-        loadReports();
+        showNotification('success', '✅ PDF Generated & Sent to Slack!', 
+          'Report created and delivered directly to your team without database storage.');
 
       } catch(err){
+        hideLoadingOverlay();
         console.error('PDF Generation Error:', err);
-        alert('Error generating PDF: ' + err.message);
+        showNotification('error', '❌ Error generating PDF', err.message);
       }
     }
   </script>
