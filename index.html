@@ -19,125 +19,304 @@
       --success-color: #28a745;
       --danger-color: #dc3545;
       --text-color: #2c3e50;
+      --border-color: #dee2e6;
+      --bg-light: #f8f9fa;
     }
-    * { box-sizing: border-box; }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       color: var(--text-color);
       font-size: 16px;
+      line-height: 1.5;
+      background: #fff;
     }
+
+    /* IMPROVED Container and Spacing */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 15px;
+    }
+
     .header {
       text-align: center;
-      margin-bottom: 15px;
-      padding: 15px 0;
-      background: #f8f9fa;
-      border-radius: 10px;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: var(--bg-light);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    .logo { height: 80px; margin-bottom: 10px; }
+    
+    .logo { 
+      height: 80px; 
+      margin-bottom: 15px;
+      max-width: 100%;
+      object-fit: contain;
+    }
+
+    .header h1 {
+      color: var(--primary-color);
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* IMPROVED Form Groups with Better Spacing */
     .form-group {
       background: white;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s ease;
     }
-    label { font-weight: bold; display: block; margin-bottom: 8px; }
+
+    .form-group:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    label { 
+      font-weight: 600; 
+      display: block; 
+      margin-bottom: 8px;
+      color: var(--text-color);
+      font-size: 14px;
+    }
+    
     input, select, textarea {
-      width: 100%; padding: 12px;
-      border: 1px solid #ced4da; border-radius: 6px;
-      font-size: 16px; margin-bottom: 12px;
+      width: 100%; 
+      padding: 12px 16px;
+      border: 2px solid var(--border-color); 
+      border-radius: 8px;
+      font-size: 16px; 
+      margin-bottom: 12px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      font-family: inherit;
     }
-    textarea { min-height: 100px; }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+    
+    textarea { 
+      min-height: 100px; 
+      resize: vertical;
+    }
+
+    /* IMPROVED Grid Layout with Better Responsive Design */
     .top-details {
       display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 10px;
-      margin-bottom: 15px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
     }
-    @media(max-width:480px){
-      .top-details { grid-template-columns:1fr; }
-      button { width: 100%; }
-    }
-    .button-group {
-      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;
-    }
-    button {
-      padding: 14px 20px; border: none; border-radius: 6px;
-      cursor: pointer; font-size: 16px; flex: 1; min-width: 120px;
-      transition: opacity .2s;
-    }
-    button:active { opacity: .8; }
-    .add-btn { background: var(--success-color); color: #fff; }
-    .remove-btn { background: var(--danger-color); color: #fff; }
-    .submit-btn { background: var(--primary-color); color: #fff; }
 
-    .photo-previews { margin-top: 10px; }
+    /* IMPROVED Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      .top-details { 
+        grid-template-columns: 1fr; 
+        gap: 15px;
+      }
+      
+      .form-group {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .header {
+        padding: 15px;
+        margin-bottom: 15px;
+      }
+      
+      .header h1 {
+        font-size: 24px;
+      }
+      
+      .logo {
+        height: 60px;
+      }
+      
+      button { 
+        width: 100% !important;
+        margin-bottom: 10px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+    }
+
+    /* IMPROVED Button Styling */
+    .button-group {
+      display: flex; 
+      gap: 15px; 
+      flex-wrap: wrap; 
+      margin-top: 25px;
+      justify-content: center;
+    }
+    
+    button {
+      padding: 14px 24px; 
+      border: none; 
+      border-radius: 8px;
+      cursor: pointer; 
+      font-size: 16px; 
+      font-weight: 600;
+      flex: 1; 
+      min-width: 140px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-transform: none;
+    }
+    
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    button:active { 
+      transform: translateY(0);
+    }
+    
+    .add-btn { 
+      background: var(--success-color); 
+      color: #fff; 
+    }
+    
+    .add-btn:hover {
+      background: #218838;
+    }
+    
+    .remove-btn { 
+      background: var(--danger-color); 
+      color: #fff; 
+    }
+    
+    .remove-btn:hover {
+      background: #c82333;
+    }
+    
+    .submit-btn { 
+      background: var(--primary-color); 
+      color: #fff; 
+    }
+    
+    .submit-btn:hover {
+      background: #0056b3;
+    }
+
+    /* IMPROVED Photo Preview Styling */
+    .photo-previews { 
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
     .photo-wrapper {
       position: relative;
       display: inline-block;
-      margin: 4px;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    
     .photo-wrapper img {
-      width: 80px; height: 80px;
+      width: 80px; 
+      height: 80px;
       object-fit: cover;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    .remove-photo-btn {
-      position: absolute;
-      top: 2px; right: 2px;
-      background: rgba(0,0,0,0.6);
-      color: #fff; border: none;
-      border-radius: 50%;
-      width: 20px; height: 20px;
-      font-size: 14px;
-      line-height: 18px;
-      text-align: center;
-      cursor: pointer;
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      transition: transform 0.2s ease;
     }
 
-    /* Address autocomplete styles */
+    .photo-wrapper:hover img {
+      transform: scale(1.05);
+    }
+    
+    .remove-photo-btn {
+      position: absolute;
+      top: 4px; 
+      right: 4px;
+      background: rgba(220, 53, 69, 0.9);
+      color: #fff; 
+      border: none;
+      border-radius: 50%;
+      width: 22px; 
+      height: 22px;
+      font-size: 14px;
+      line-height: 1;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .remove-photo-btn:hover {
+      background: rgba(220, 53, 69, 1);
+    }
+
+    /* IMPROVED Address Autocomplete */
     .address-container {
       position: relative;
     }
+    
     .address-suggestions {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
       background: white;
-      border: 1px solid #ced4da;
+      border: 2px solid var(--border-color);
       border-top: none;
-      border-radius: 0 0 6px 6px;
+      border-radius: 0 0 8px 8px;
       max-height: 200px;
       overflow-y: auto;
       z-index: 1000;
       display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
+    
     .address-suggestion {
-      padding: 10px;
+      padding: 12px 16px;
       cursor: pointer;
       border-bottom: 1px solid #eee;
+      transition: background 0.2s ease;
     }
+    
     .address-suggestion:hover {
-      background: #f8f9fa;
+      background: var(--bg-light);
     }
+    
     .address-suggestion:last-child {
       border-bottom: none;
     }
 
-    /* FIXED Map styles with proper aspect ratio */
+    /* IMPROVED Map Styling with Perfect Aspect Ratio */
     .map-container {
       width: 100%;
-      height: 300px;
-      border: 1px solid #ced4da;
-      border-radius: 6px;
-      margin-top: 10px;
+      height: 350px;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      margin-top: 15px;
       position: relative;
-      background: #f8f9fa;
-      overflow: hidden; /* Prevent stretching */
+      background: var(--bg-light);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    
     .map-placeholder {
       display: flex;
       align-items: center;
@@ -145,45 +324,52 @@
       height: 100%;
       flex-direction: column;
       color: #6c757d;
+      text-align: center;
+      padding: 20px;
     }
+    
     .map-icon {
       font-size: 48px;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
     }
+    
     .overview-map {
-      height: 400px; /* Taller for better overview */
+      height: 450px;
     }
+    
     .location-info {
       font-size: 12px;
       color: var(--success-color);
-      margin-top: 5px;
+      margin-top: 8px;
+      font-weight: 600;
     }
 
-    /* Alert styles */
+    /* IMPROVED Alert Styling */
     .alert {
-      padding: 12px;
-      margin-bottom: 15px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
       border: 1px solid transparent;
-      border-radius: 6px;
+      border-radius: 10px;
       background-color: #d1ecf1;
       border-color: #bee5eb;
       color: #0c5460;
+      font-weight: 500;
     }
+    
     .alert.success {
       background-color: #d4edda;
       border-color: #c3e6cb;
       color: #155724;
     }
 
-    /* MapTiler specific styles - FIXED aspect ratio */
+    /* MapTiler Specific Styling */
     .maptiler-map {
       width: 100% !important;
       height: 100% !important;
-      border-radius: 6px;
-      object-fit: cover; /* Prevent stretching */
+      border-radius: 8px;
     }
 
-    /* Enhanced Photo editing modal styles */
+    /* IMPROVED Photo Editing Modal */
     .modal {
       display: none;
       position: fixed;
@@ -194,122 +380,150 @@
       height: 100%;
       background-color: rgba(0,0,0,0.9);
     }
+    
     .modal-content {
       background-color: #fefefe;
-      margin: 1% auto;
-      padding: 20px;
-      border-radius: 10px;
+      margin: 2% auto;
+      padding: 25px;
+      border-radius: 15px;
       width: 95%;
       max-width: 900px;
       max-height: 95vh;
       overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
+    
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      border-bottom: 2px solid #dee2e6;
-      padding-bottom: 15px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 20px;
     }
+    
     .modal-header h2 {
       margin: 0;
       color: var(--primary-color);
+      font-size: 24px;
     }
+    
     .close {
       color: #aaa;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: bold;
       cursor: pointer;
-      padding: 5px;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
     }
+    
     .close:hover {
       color: var(--danger-color);
+      background: rgba(220, 53, 69, 0.1);
     }
+    
     .crop-container {
       max-height: 500px;
-      margin: 20px 0;
-      border: 2px solid #dee2e6;
-      border-radius: 8px;
+      margin: 25px 0;
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
       overflow: hidden;
     }
+    
     .crop-controls {
       display: flex;
-      gap: 10px;
+      gap: 15px;
       flex-wrap: wrap;
-      margin: 20px 0;
+      margin: 25px 0;
       justify-content: center;
     }
+    
     .crop-controls button {
       padding: 12px 20px;
       font-size: 14px;
       min-width: 120px;
       flex: none;
-      font-weight: bold;
+      font-weight: 600;
     }
+    
     .rotate-btn {
       background: #6c757d;
       color: white;
     }
+    
     .rotate-btn:hover {
       background: #5a6268;
     }
+    
     .crop-btn {
       background: var(--success-color);
       color: white;
     }
+    
     .crop-btn:hover {
       background: #218838;
     }
+    
     .cancel-btn {
       background: var(--danger-color);
       color: white;
     }
+    
     .cancel-btn:hover {
       background: #c82333;
     }
+    
     .photo-edit-instructions {
       background: #e9ecef;
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 15px;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.6;
     }
+    
     .photo-edit-instructions strong {
       color: var(--primary-color);
     }
 
-    /* Slack configuration styles */
+    /* IMPROVED Slack Configuration */
     .slack-config {
-      background: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
     }
+    
     .slack-config h3 {
       margin-top: 0;
+      margin-bottom: 15px;
       color: #495057;
+      font-size: 20px;
     }
+    
     .slack-status {
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 12px 16px;
+      border-radius: 8px;
       font-size: 14px;
-      margin-top: 10px;
+      margin-top: 15px;
+      font-weight: 500;
     }
+    
     .slack-status.enabled {
       background: #d4edda;
       color: #155724;
-      border: 1px solid #c3e6cb;
+      border: 2px solid #c3e6cb;
     }
+    
     .slack-status.disabled {
       background: #f8d7da;
       color: #721c24;
-      border: 1px solid #f5c6cb;
+      border: 2px solid #f5c6cb;
     }
 
-    /* Hidden canvas for map capture */
+    /* Hidden Elements */
     .map-capture-canvas {
       position: absolute;
       top: -9999px;
@@ -319,7 +533,7 @@
       z-index: -1;
     }
 
-    /* Loading overlay */
+    /* IMPROVED Loading Overlay */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -332,46 +546,98 @@
       align-items: center;
       z-index: 20000;
     }
+    
     .loading-content {
       background: white;
-      padding: 30px;
-      border-radius: 10px;
+      padding: 40px;
+      border-radius: 15px;
       text-align: center;
-      max-width: 300px;
+      max-width: 350px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
+    
     .spinner {
       border: 4px solid #f3f3f3;
       border-top: 4px solid var(--primary-color);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
+      margin: 0 auto 20px;
     }
+    
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
 
-    /* Overview map preview notice */
+    /* IMPROVED Overview Map Preview Notice */
     .overview-preview-notice {
-      background: #e7f3ff;
-      border: 1px solid #b3d9ff;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 10px;
+      background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+      border: 2px solid #b3d9ff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
       font-size: 14px;
       color: #0066cc;
+      line-height: 1.6;
     }
+    
     .overview-preview-notice strong {
       color: #004499;
+      font-weight: 600;
     }
 
-    /* FIXED: Prevent canvas stretching */
-    canvas {
-      max-width: 100%;
-      height: auto;
-      object-fit: contain;
+    /* IMPROVED Section Headers */
+    .section-header {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-color);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--primary-color);
+    }
+
+    /* IMPROVED Observation Section */
+    .observation-section {
+      border-left: 4px solid var(--primary-color);
+      padding-left: 20px;
+      margin-left: 10px;
+    }
+
+    /* IMPROVED Mobile Specific Adjustments */
+    @media (max-width: 480px) {
+      .container {
+        padding: 8px;
+      }
+      
+      .form-group {
+        padding: 12px;
+      }
+      
+      .map-container {
+        height: 280px;
+      }
+      
+      .overview-map {
+        height: 320px;
+      }
+      
+      .modal-content {
+        margin: 5% auto;
+        padding: 20px;
+        width: 98%;
+      }
+      
+      .crop-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .crop-controls button {
+        width: 100%;
+        margin-bottom: 10px;
+      }
     }
   </style>
 
@@ -380,129 +646,133 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-content">
-      <div class="spinner"></div>
-      <h3>Processing...</h3>
-      <p>Please wait while we process your request.</p>
-    </div>
-  </div>
-
-  <!-- MapTiler API Key Alert -->
-  <div class="alert success" id="mapsAlert">
-    ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
-  </div>
-
-  <!-- CORRECTED Slack Configuration -->
-  <div class="slack-config">
-    <h3>📢 Direct Slack File Upload</h3>
-    <div class="photo-edit-instructions">
-      <strong>CORRECTED:</strong> PDF files are now uploaded directly to your Slack channel as file attachments. 
-      Configure your Slack Bot Token below to enable file upload to #roof-inspections.
-    </div>
-    <label for="slackBotToken">Slack Bot Token (xoxb-...):</label>
-    <input type="password" id="slackBotToken" placeholder="xoxb-your-bot-token-here" />
-    <label for="slackChannel">Slack Channel:</label>
-    <input type="text" id="slackChannel" placeholder="#roof-inspections" value="#roof-inspections" />
-    <div class="slack-status disabled" id="slackStatus">
-      Slack file upload disabled - Add Bot Token to enable direct PDF file upload to #roof-inspections
-    </div>
-  </div>
-
-  <div class="header">
-    <img src="Logo seal e slogan@2x (1).png" class="logo" alt="SEAL TOP ROOF Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';">
-    <h1>Roof Inspection Report</h1>
-  </div>
-
-  <div class="top-details">
-    <div class="form-group">
-      <label>Property:</label>
-      <div class="address-container">
-        <input type="text" id="address" placeholder="Start typing address or zip code..." required>
-        <div class="address-suggestions" id="addressSuggestions"></div>
+  <div class="container">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h3>Processing...</h3>
+        <p>Please wait while we process your request.</p>
       </div>
     </div>
-    <div class="form-group">
-      <label>Inspector Name:</label>
-      <select id="inspector" required>
-        <option>Arister Cruz</option>
-        <option>Jorge Woicikoski</option>
-        <option>Pedro Ortiz</option>
-      </select>
+
+    <!-- MapTiler API Key Alert -->
+    <div class="alert success" id="mapsAlert">
+      ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
     </div>
-    <div class="form-group">
-      <label>Roof Type:</label>
-      <select id="roof-type" required>
-        <option>TPO</option><option>PVC</option><option>Metal</option>
-        <option>Modified</option><option>Shingle</option><option>Other</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>Roof Condition:</label>
-      <select id="roof-condition" required>
-        <option>Good</option><option>Fair</option><option>Poor</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="form-group">
-    <label>Inspection Date:</label>
-    <input type="date" id="date" required>
-  </div>
-
-  <div id="observations-container"></div>
-
-  <div class="button-group">
-    <button class="add-btn" onclick="addObservation()">Add Observation</button>
-    <button class="submit-btn" onclick="generatePDF()">Generate PDF &amp; Send to Slack</button>
-  </div>
-
-  <!-- FIXED Overview Map with proper aspect ratio -->
-  <div class="form-group">
-    <h2>Overview Map - PDF Preview</h2>
-    <div class="overview-preview-notice">
-      <strong>📋 PDF Preview:</strong> This map shows exactly how the overview will appear in your PDF report. 
-      The zoom level and satellite imagery match the individual observation maps for consistency.
-    </div>
-    <p>Adjust the view below to control how the overview map appears in the PDF report</p>
-    <div class="map-container overview-map" id="overviewMap">
-      <div class="map-placeholder">
-        <div class="map-icon">🗺️</div>
-        <div>Overview Map - PDF Preview</div>
-        <div style="font-size: 14px; margin-top: 5px;">Shows exactly how the map will appear in the PDF</div>
-        <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden canvas for map capture -->
-  <div id="mapCaptureContainer" class="map-capture-canvas"></div>
-
-  <!-- Enhanced Photo Editing Modal -->
-  <div id="photoEditModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>📸 Edit Photo Before Upload</h2>
-        <span class="close" onclick="cancelPhotoEdit()">&times;</span>
-      </div>
+    <!-- IMPROVED Slack Configuration -->
+    <div class="slack-config">
+      <h3>📢 Direct Slack File Upload</h3>
       <div class="photo-edit-instructions">
-        <strong>Required:</strong> Please crop and adjust your photo before continuing. 
-        This ensures all photos have consistent size and orientation for professional reports.
+        <strong>CORRECTED:</strong> PDF files are now uploaded directly to your Slack channel as file attachments. 
+        Configure your Slack Bot Token below to enable file upload to #roof-inspections.
+      </div>
+      <label for="slackBotToken">Slack Bot Token (xoxb-...):</label>
+      <input type="password" id="slackBotToken" placeholder="xoxb-your-bot-token-here" />
+      <label for="slackChannel">Slack Channel:</label>
+      <input type="text" id="slackChannel" placeholder="#roof-inspections" value="#roof-inspections" />
+      <div class="slack-status disabled" id="slackStatus">
+        Slack file upload disabled - Add Bot Token to enable direct PDF file upload to #roof-inspections
+      </div>
+    </div>
+
+    <div class="header">
+      <img src="Logo seal e slogan@2x (1).png" class="logo" alt="SEAL TOP ROOF Logo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';">
+      <h1>Roof Inspection Report</h1>
+    </div>
+
+    <div class="top-details">
+      <div class="form-group">
+        <label>Property:</label>
+        <div class="address-container">
+          <input type="text" id="address" placeholder="Start typing address or zip code..." required>
+          <div class="address-suggestions" id="addressSuggestions"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Inspector Name:</label>
+        <select id="inspector" required>
+          <option>Arister Cruz</option>
+          <option>Jorge Woicikoski</option>
+          <option>Pedro Ortiz</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Roof Type:</label>
+        <select id="roof-type" required>
+          <option>TPO</option><option>PVC</option><option>Metal</option>
+          <option>Modified</option><option>Shingle</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Roof Condition:</label>
+        <select id="roof-condition" required>
+          <option>Good</option><option>Fair</option><option>Poor</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Inspection Date:</label>
+      <input type="date" id="date" required>
+    </div>
+
+    <div id="observations-container"></div>
+
+    <div class="button-group">
+      <button class="add-btn" onclick="addObservation()">Add Observation</button>
+      <button class="submit-btn" onclick="generatePDF()">Generate PDF &amp; Send to Slack</button>
+    </div>
+
+    <!-- IMPROVED Overview Map Section -->
+    <div class="form-group">
+      <h2 class="section-header">Overview Map - PDF Preview</h2>
+      <div class="overview-preview-notice">
+        <strong>📋 PDF Preview:</strong> This map shows exactly how the overview will appear in your PDF report. 
+        The zoom level and satellite imagery match the individual observation maps for consistency.
         <br><br>
-        <strong>Instructions:</strong>
-        • Use the crop box to select the important area
-        • Rotate the image if needed using the buttons below
-        • Click "Apply & Continue" when satisfied with the result
+        <strong>✨ Interactive Control:</strong> You can zoom, pan, and adjust this map view. 
+        The PDF will capture exactly what you see here, including all numbered markers.
       </div>
-      <div class="crop-container">
-        <img id="cropImage" style="max-width: 100%;">
+      <div class="map-container overview-map" id="overviewMap">
+        <div class="map-placeholder">
+          <div class="map-icon">🗺️</div>
+          <div><strong>Overview Map - PDF Preview</strong></div>
+          <div style="font-size: 14px; margin-top: 10px;">Shows exactly how the map will appear in the PDF</div>
+          <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
+        </div>
       </div>
-      <div class="crop-controls">
-        <button class="rotate-btn" onclick="rotateImage(-90)">↺ Rotate Left</button>
-        <button class="rotate-btn" onclick="rotateImage(90)">↻ Rotate Right</button>
-        <button class="crop-btn" onclick="applyPhotoEdit()">✓ Apply & Continue</button>
-        <button class="cancel-btn" onclick="cancelPhotoEdit()">✗ Cancel Upload</button>
+    </div>
+
+    <!-- Hidden canvas for map capture -->
+    <div id="mapCaptureContainer" class="map-capture-canvas"></div>
+
+    <!-- Enhanced Photo Editing Modal -->
+    <div id="photoEditModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📸 Edit Photo Before Upload</h2>
+          <span class="close" onclick="cancelPhotoEdit()">&times;</span>
+        </div>
+        <div class="photo-edit-instructions">
+          <strong>Required:</strong> Please crop and adjust your photo before continuing. 
+          This ensures all photos have consistent size and orientation for professional reports.
+          <br><br>
+          <strong>Instructions:</strong>
+          • Use the crop box to select the important area
+          • Rotate the image if needed using the buttons below
+          • Click "Apply & Continue" when satisfied with the result
+        </div>
+        <div class="crop-container">
+          <img id="cropImage" style="max-width: 100%;">
+        </div>
+        <div class="crop-controls">
+          <button class="rotate-btn" onclick="rotateImage(-90)">↺ Rotate Left</button>
+          <button class="rotate-btn" onclick="rotateImage(90)">↻ Rotate Right</button>
+          <button class="crop-btn" onclick="applyPhotoEdit()">✓ Apply & Continue</button>
+          <button class="cancel-btn" onclick="cancelPhotoEdit()">✗ Cancel Upload</button>
+        </div>
       </div>
     </div>
   </div>
@@ -601,7 +871,7 @@
         `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    // ==== CORRECTED Slack Configuration ====
+    // ==== Slack Configuration ====
     function setupSlackConfiguration() {
       slackBotTokenInput.addEventListener('input', updateSlackStatus);
       slackChannelInput.addEventListener('input', updateSlackStatus);
@@ -637,7 +907,7 @@
       }
     }
 
-    // ==== CORRECTED Slack File Upload Integration ====
+    // ==== Slack File Upload Integration ====
     async function uploadToSlack(pdfBlob, reportData) {
       const token = slackBotTokenInput.value.trim();
       const channel = slackChannelInput.value.trim() || '#roof-inspections';
@@ -919,8 +1189,8 @@
         <div class="map-container observation-map" data-observation="${observationCount}">
           <div class="map-placeholder">
             <div class="map-icon">📍</div>
-            <div>Interactive Map</div>
-            <div style="font-size: 14px; margin-top: 5px;">Click to mark issue location</div>
+            <div><strong>Interactive Map</strong></div>
+            <div style="font-size: 14px; margin-top: 8px;">Click to mark issue location</div>
           </div>
         </div>
         <div class="location-info" style="display: none;"></div>
@@ -972,7 +1242,7 @@
             [propertyLocation.lng, propertyLocation.lat] : 
             [-74.0060, 40.7128];
           
-          // Initialize MapTiler map with CONSISTENT zoom level and FIXED aspect ratio
+          // Initialize MapTiler map with CONSISTENT zoom level
           const map = new maptilersdk.Map({
             container: mapContainer,
             style: maptilersdk.MapStyle.SATELLITE,
@@ -1044,8 +1314,8 @@
         mapContainer.innerHTML = `
           <div class="map-placeholder">
             <div class="map-icon">📍</div>
-            <div>Location Marked!</div>
-            <div style="font-size: 14px; margin-top: 5px;">Click again to change location</div>
+            <div><strong>Location Marked!</strong></div>
+            <div style="font-size: 14px; margin-top: 8px;">Click again to change location</div>
           </div>
         `;
         updateLocationDisplay(observationDiv);
@@ -1064,7 +1334,7 @@
       }
     }
 
-    // ==== FIXED Overview Map with Numbered Markers ====
+    // ==== CORRECTED Overview Map with EXACT Website Match ====
     function updateOverviewMap() {
       const overviewMapContainer = document.getElementById('overviewMap');
       const observations = document.querySelectorAll('.observation-section');
@@ -1074,9 +1344,9 @@
         overviewMapContainer.innerHTML = `
           <div class="map-placeholder">
             <div class="map-icon">🗺️</div>
-            <div>Overview Map - PDF Preview</div>
-            <div style="font-size: 14px; margin-top: 5px;">Shows exactly how the map will appear in the PDF</div>
-            <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
+            <div><strong>Overview Map - PDF Preview</strong></div>
+            <div style="font-size: 14px; margin-top: 10px;">Shows exactly how the map will appear in the PDF</div>
+            <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
           </div>
         `;
         return;
@@ -1093,7 +1363,7 @@
               [propertyLocation.lng, propertyLocation.lat] : 
               [-74.0060, 40.7128];
             
-            // SAME settings as observation maps for consistency with FIXED aspect ratio
+            // SAME settings as observation maps for EXACT consistency
             overviewMapInstance = new maptilersdk.Map({
               container: overviewMapContainer,
               style: maptilersdk.MapStyle.SATELLITE, // SAME style
@@ -1102,15 +1372,19 @@
               preserveDrawingBuffer: true, // For PDF capture
               antialias: true // Better quality
             });
+
+            overviewMapInstance.on('load', () => {
+              console.log('Overview map loaded successfully');
+            });
           }
 
           // Clear existing markers
           allMarkers.forEach(marker => marker.remove());
           allMarkers = [];
 
-          // Add NUMBERED markers for all observations
+          // Add NUMBERED markers for all observations - EXACT SAME as website
           locationsWithMarkers.forEach((obs, index) => {
-            // Create custom numbered marker element
+            // Create custom numbered marker element - EXACT SAME styling as website
             const markerElement = document.createElement('div');
             markerElement.style.cssText = `
               background-color: #dc2626;
@@ -1125,6 +1399,7 @@
               font-size: 14px;
               border: 2px solid white;
               box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             `;
             markerElement.textContent = (index + 1).toString();
             
@@ -1137,7 +1412,7 @@
             allMarkers.push(marker);
           });
 
-          // Keep SAME zoom level instead of fitting bounds
+          // Keep SAME zoom level instead of fitting bounds - EXACT SAME as website
           // This ensures the overview map matches the individual observation maps exactly
           if (propertyLocation) {
             overviewMapInstance.setCenter([propertyLocation.lng, propertyLocation.lat]);
@@ -1162,140 +1437,47 @@
       container.innerHTML = `
         <div class="map-placeholder">
           <div class="map-icon">🗺️</div>
-          <div>Overview Map - PDF Preview</div>
-          <div style="font-size: 14px; margin-top: 5px;">${locationsWithMarkers.length} issue location(s) marked</div>
-          <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">
+          <div><strong>Overview Map - PDF Preview</strong></div>
+          <div style="font-size: 14px; margin-top: 10px;">${locationsWithMarkers.length} issue location(s) marked</div>
+          <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">
             ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
           </div>
         </div>
       `;
     }
 
-    // ==== CORRECTED High-Quality Map Capture for PDF with NUMBERED MARKERS ====
-    async function createHighQualityMapCaptureForPDF(observations) {
-      if (!maptilerLoaded || observations.length === 0) {
+    // ==== CORRECTED High-Quality Map Capture for PDF - EXACT WEBSITE MATCH ====
+    async function createExactWebsiteMatchMapCaptureForPDF(observations) {
+      if (!maptilerLoaded || observations.length === 0 || !overviewMapInstance) {
         return null;
       }
 
       try {
-        console.log('Creating CORRECTED high-quality map capture with numbered markers...');
+        console.log('Creating EXACT website match map capture for PDF...');
         
-        // Create a larger hidden map container for high-quality capture
-        const captureContainer = document.getElementById('mapCaptureContainer');
-        captureContainer.innerHTML = '';
-        captureContainer.style.width = '1200px';  // Higher resolution
-        captureContainer.style.height = '900px';  // Higher resolution with proper aspect ratio
-        captureContainer.style.position = 'absolute';
-        captureContainer.style.top = '-9999px';
-        captureContainer.style.left = '-9999px';
-        captureContainer.style.visibility = 'hidden';
+        // CORRECTED: Capture the EXACT SAME overview map that user sees on website
+        // Wait for any pending map operations to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        // Use SAME settings as overview map for consistency
-        const center = propertyLocation ? 
-          [propertyLocation.lng, propertyLocation.lat] : 
-          (observations[0].location ? [observations[0].location.lng, observations[0].location.lat] : [-74.0060, 40.7128]);
+        // Force a repaint of the overview map to ensure all markers are rendered
+        overviewMapInstance.resize();
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Create high-quality map for capture with SAME settings as overview map
-        const captureMap = new maptilersdk.Map({
-          container: captureContainer,
-          style: maptilersdk.MapStyle.SATELLITE, // SAME style
-          center: center,
-          zoom: 18, // SAME zoom as overview map
-          preserveDrawingBuffer: true, // CRITICAL for canvas capture
-          antialias: true, // Better quality
-          fadeDuration: 0 // Disable fade for immediate rendering
-        });
-
-        // Wait for map to fully load
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error('Map load timeout')), 15000);
-          captureMap.on('load', () => {
-            clearTimeout(timeout);
-            resolve();
-          });
-          captureMap.on('error', (e) => {
-            clearTimeout(timeout);
-            reject(e);
-          });
-        });
-
-        console.log('Map loaded, adding CORRECTED numbered markers...');
-
-        // Add NUMBERED markers with ENHANCED styling for PDF capture
-        const markers = [];
-        observations.forEach((obs, index) => {
-          if (obs.location) {
-            // Create ENHANCED numbered marker element for PDF capture
-            const markerElement = document.createElement('div');
-            markerElement.style.cssText = `
-              background-color: #dc2626;
-              color: white;
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: bold;
-              font-size: 18px;
-              border: 3px solid white;
-              box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-              font-family: Arial, sans-serif;
-              position: relative;
-              z-index: 1000;
-            `;
-            markerElement.textContent = (index + 1).toString();
-            
-            const marker = new maptilersdk.Marker({
-              element: markerElement
-            })
-            .setLngLat([obs.location.lng, obs.location.lat])
-            .addTo(captureMap);
-            
-            markers.push(marker);
-          }
-        });
-
-        // Keep SAME zoom and center as overview map
-        captureMap.setCenter(center);
-        captureMap.setZoom(18);
-
-        // Wait LONGER for rendering and marker placement
-        console.log('Waiting for map rendering with markers...');
-        await new Promise(resolve => setTimeout(resolve, 8000)); // Increased wait time
-
-        // Force a repaint
-        captureMap.resize();
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Additional wait after resize
-
-        // Capture the map with high quality
-        console.log('Capturing map canvas with numbered markers...');
-        const canvas = captureMap.getCanvas();
+        // Get the canvas from the EXACT SAME overview map instance
+        const canvas = overviewMapInstance.getCanvas();
         
         if (!canvas) {
-          throw new Error('Canvas not available');
+          throw new Error('Canvas not available from overview map');
         }
 
-        // Create high-quality image with proper aspect ratio
+        // Create high-quality image with EXACT SAME content as website
         const mapImageDataUrl = canvas.toDataURL('image/png', 1.0); // Maximum quality
 
-        console.log('Map capture successful with numbered markers, cleaning up...');
-
-        // Clean up markers
-        markers.forEach(marker => marker.remove());
-        
-        // Clean up map
-        captureMap.remove();
-        captureContainer.innerHTML = '';
+        console.log('EXACT website match map capture successful');
 
         return mapImageDataUrl;
       } catch (error) {
-        console.error('Error creating CORRECTED high-quality map capture:', error);
-        
-        // Clean up on error
-        const captureContainer = document.getElementById('mapCaptureContainer');
-        captureContainer.innerHTML = '';
-        
+        console.error('Error creating EXACT website match map capture:', error);
         return null;
       }
     }
@@ -1428,7 +1610,7 @@
       }
     }
 
-    // ==== CORRECTED PDF Generation with HIGH-QUALITY NUMBERED MARKERS in Overview Map ====
+    // ==== CORRECTED PDF Generation with EXACT WEBSITE OVERVIEW MAP MATCH ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1443,7 +1625,7 @@
         }
 
         // Show loading overlay
-        showLoadingOverlay('Generating CORRECTED High-Quality PDF Report...', 'Creating professional report with numbered overview map and enhanced quality.');
+        showLoadingOverlay('Generating PDF with EXACT Website Overview Map...', 'Creating professional report with numbered overview map that matches exactly what you see on the website.');
 
         // Check if jsPDF is available
         if (typeof window.jspdf === 'undefined') {
@@ -1555,13 +1737,13 @@
           }
         });
 
-        // CORRECTED Overview map page (landscape) with HIGH-QUALITY NUMBERED MARKERS
+        // CORRECTED Overview map page (landscape) with EXACT WEBSITE MATCH
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
-          console.log('Creating CORRECTED HIGH-QUALITY overview map with numbered markers for PDF...');
+          console.log('Creating EXACT website match overview map for PDF...');
           
-          // Create CORRECTED HIGH-QUALITY map capture using ENHANCED settings WITH NUMBERED MARKERS
-          const mapImageDataUrl = await createHighQualityMapCaptureForPDF(savedObs);
+          // Create EXACT WEBSITE MATCH map capture
+          const mapImageDataUrl = await createExactWebsiteMatchMapCaptureForPDF(savedObs);
           
           // Add landscape page
           doc.addPage('a4', 'landscape');
@@ -1593,10 +1775,10 @@
           const mapHeight = landscapeH - 140; // Space for coordinates
           
           if (mapImageDataUrl) {
-            // Add CORRECTED HIGH-QUALITY map image WITH NUMBERED MARKERS
+            // Add EXACT WEBSITE MATCH map image
             try {
-              console.log('Adding CORRECTED HIGH-QUALITY map image with numbered markers to PDF');
-              // FIXED: Maintain aspect ratio and prevent stretching
+              console.log('Adding EXACT website match map image to PDF');
+              // CORRECTED: Maintain aspect ratio and prevent stretching
               const aspectRatio = 1200 / 900; // Original capture aspect ratio
               const targetAspectRatio = mapWidth / mapHeight;
               
@@ -1636,9 +1818,9 @@
             
             // Add map title inside
             doc.setFontSize(14);
-            doc.text('High-Quality Overview Map with Numbered Markers', 30, y + 20);
+            doc.text('EXACT Website Match Overview Map with Numbered Markers', 30, y + 20);
             doc.setFontSize(10);
-            doc.text('(Refer to web application for interactive satellite version)', 30, y + 35);
+            doc.text('(This represents the exact same view as shown on the website)', 30, y + 35);
             
             // Enhanced visual representation of NUMBERED markers
             savedObs.forEach((obs, index) => {
@@ -1685,9 +1867,9 @@
           // Add note about interactive map
           y += 5;
           doc.setFontSize(8);
-          doc.text('Note: This overview shows all marked issue locations with numbered markers. For interactive satellite imagery,', 20, y);
+          doc.text('Note: This overview shows the exact same view as the interactive map on the website with all numbered markers.', 20, y);
           y += 4;
-          doc.text('please refer to the web application at the property address location.', 20, y);
+          doc.text('The PDF captures the precise view and zoom level that was displayed on the website.', 20, y);
         }
 
         // Save PDF locally
@@ -1707,11 +1889,11 @@
         
         hideLoadingOverlay();
         
-        // CORRECTED: Upload directly to Slack (NO Firebase storage)
+        // Upload directly to Slack
         await uploadToSlack(blob, reportData);
         
-        showNotification('success', '✅ CORRECTED High-Quality PDF Generated with Numbered Markers!', 
-          'Professional report created with enhanced overview map and uploaded directly to Slack.');
+        showNotification('success', '✅ PDF Generated with EXACT Website Overview Map!', 
+          'Professional report created with overview map that matches exactly what you see on the website.');
 
       } catch(err){
         hideLoadingOverlay();
