@@ -9,6 +9,10 @@
   <script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>
   <link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.css" rel="stylesheet" />
   
+  <!-- Cropper.js for photo editing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+  
   <style>
     :root {
       --primary-color: #007bff;
@@ -100,6 +104,18 @@
       text-align: center;
       cursor: pointer;
     }
+    .edit-photo-btn {
+      position: absolute;
+      bottom: 2px; right: 2px;
+      background: var(--primary-color);
+      color: #fff; border: none;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      font-size: 12px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+    }
 
     /* Address autocomplete styles */
     .address-container {
@@ -184,6 +200,71 @@
       height: 100%;
       border-radius: 6px;
     }
+
+    /* Photo editing modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 2% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: black;
+    }
+    .crop-container {
+      max-height: 400px;
+      margin: 20px 0;
+    }
+    .crop-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+    .crop-controls button {
+      padding: 8px 16px;
+      font-size: 14px;
+      min-width: auto;
+      flex: none;
+    }
+    .rotate-btn {
+      background: #6c757d;
+      color: white;
+    }
+    .crop-btn {
+      background: var(--success-color);
+      color: white;
+    }
+    .cancel-btn {
+      background: var(--danger-color);
+      color: white;
+    }
   </style>
 
   <!-- Firebase -->
@@ -196,8 +277,8 @@
 </head>
 <body>
   <!-- MapTiler API Key Alert -->
-  <div class="alert" id="mapsAlert">
-    ℹ️ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
+  <div class="alert success" id="mapsAlert">
+    ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
   </div>
 
   <div class="form-group">
@@ -279,6 +360,25 @@
     </div>
   </div>
 
+  <!-- Photo Editing Modal -->
+  <div id="photoEditModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Photo</h2>
+        <span class="close" onclick="closePhotoEditor()">&times;</span>
+      </div>
+      <div class="crop-container">
+        <img id="cropImage" style="max-width: 100%;">
+      </div>
+      <div class="crop-controls">
+        <button class="rotate-btn" onclick="rotateImage(-90)">↺ Rotate Left</button>
+        <button class="rotate-btn" onclick="rotateImage(90)">↻ Rotate Right</button>
+        <button class="crop-btn" onclick="applyCrop()">✓ Apply Changes</button>
+        <button class="cancel-btn" onclick="closePhotoEditor()">✗ Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ==== Configuration ====
     const MAPTILER_API_KEY = 'D07LNHRpX8QqmkT39Nza'; // User's actual MapTiler API key
@@ -304,6 +404,10 @@
     let observationMaps = {};
     let overviewMapInstance = null;
     let allMarkers = [];
+    let propertyLocation = null; // Store property location for auto-centering
+    let currentCropper = null;
+    let currentPhotoIndex = null;
+    let currentObservationDiv = null;
 
     // ==== DOM refs ====
     const reportList = document.getElementById('reportList');
@@ -389,11 +493,6 @@
         maptilersdk.config.apiKey = MAPTILER_API_KEY;
         maptilerLoaded = true;
         
-        // Update alert to show success
-        const alert = document.getElementById('mapsAlert');
-        alert.className = 'alert success';
-        alert.textContent = '✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.';
-        
         console.log('MapTiler SDK loaded successfully with API key:', MAPTILER_API_KEY);
       } else {
         console.error('MapTiler SDK not loaded');
@@ -435,7 +534,10 @@
         const data = await response.json();
         
         if (data.features && data.features.length > 0) {
-          const suggestions = data.features.map(feature => feature.place_name);
+          const suggestions = data.features.map(feature => ({
+            text: feature.place_name,
+            coordinates: feature.center // [lng, lat]
+          }));
           showAddressSuggestions(suggestions);
         } else {
           showEnhancedLocalSuggestions(query);
@@ -456,13 +558,19 @@
         const baseZip = query.padEnd(5, '0');
         for (let i = 0; i < 5; i++) {
           const zip = (parseInt(baseZip) + i).toString().padStart(5, '0');
-          suggestions.push(`${zip} - ${getRandomCity()}`);
+          suggestions.push({
+            text: `${zip} - ${getRandomCity()}`,
+            coordinates: null
+          });
         }
       } else {
         // Search address database
         addressDatabase.forEach(item => {
           if (item.address.toLowerCase().includes(queryLower)) {
-            suggestions.push(item.address);
+            suggestions.push({
+              text: item.address,
+              coordinates: null
+            });
           }
         });
 
@@ -474,7 +582,10 @@
           streetTypes.forEach(type => {
             cities.forEach(city => {
               if (suggestions.length < 8) {
-                suggestions.push(`${query} ${type}, ${city}`);
+                suggestions.push({
+                  text: `${query} ${type}, ${city}`,
+                  coordinates: null
+                });
               }
             });
           });
@@ -504,15 +615,45 @@
       suggestions.forEach(suggestion => {
         const div = document.createElement('div');
         div.className = 'address-suggestion';
-        div.textContent = suggestion;
+        div.textContent = suggestion.text;
         div.addEventListener('click', () => {
-          addressInput.value = suggestion;
+          addressInput.value = suggestion.text;
           addressSuggestions.style.display = 'none';
+          
+          // Store property location for auto-centering maps
+          if (suggestion.coordinates) {
+            propertyLocation = {
+              lng: suggestion.coordinates[0],
+              lat: suggestion.coordinates[1]
+            };
+            // Update all existing maps to center on property
+            centerAllMapsOnProperty();
+          }
         });
         addressSuggestions.appendChild(div);
       });
 
       addressSuggestions.style.display = 'block';
+    }
+
+    // ==== Auto-center Maps on Property ====
+    function centerAllMapsOnProperty() {
+      if (!propertyLocation) return;
+      
+      // Center all observation maps
+      const observations = document.querySelectorAll('.observation-section');
+      observations.forEach(obs => {
+        if (obs.map) {
+          obs.map.setCenter([propertyLocation.lng, propertyLocation.lat]);
+          obs.map.setZoom(18);
+        }
+      });
+      
+      // Center overview map
+      if (overviewMapInstance) {
+        overviewMapInstance.setCenter([propertyLocation.lng, propertyLocation.lat]);
+        overviewMapInstance.setZoom(16);
+      }
     }
 
     // ==== Reports Management ====
@@ -581,6 +722,7 @@
       obsContainer.innerHTML = '';
       observationCount = 0;
       addObservation();
+      propertyLocation = null;
     }
 
     // ==== Observations & Maps ====
@@ -645,16 +787,21 @@
           // Clear any existing placeholder content
           mapContainer.innerHTML = '';
           
+          // Use property location if available, otherwise default to NYC
+          const center = propertyLocation ? 
+            [propertyLocation.lng, propertyLocation.lat] : 
+            [-74.0060, 40.7128];
+          
           // Initialize MapTiler map
           const map = new maptilersdk.Map({
             container: mapContainer,
             style: maptilersdk.MapStyle.SATELLITE,
-            center: [-74.0060, 40.7128], // NYC coordinates [lng, lat]
-            zoom: 18
+            center: center,
+            zoom: propertyLocation ? 18 : 15
           });
 
           map.on('load', () => {
-            console.log('Map loaded successfully');
+            console.log('Observation map loaded successfully');
           });
 
           map.on('click', (e) => {
@@ -704,10 +851,11 @@
     function initFallbackMap(observationDiv, mapContainer) {
       mapContainer.style.cursor = 'pointer';
       mapContainer.addEventListener('click', () => {
-        // Simulate location selection
+        // Use property location if available for mock coordinates
+        const baseLocation = propertyLocation || { lat: 40.7128, lng: -74.0060 };
         const mockLocation = {
-          lat: 40.7128 + (Math.random() - 0.5) * 0.01,
-          lng: -74.0060 + (Math.random() - 0.5) * 0.01
+          lat: baseLocation.lat + (Math.random() - 0.5) * 0.01,
+          lng: baseLocation.lng + (Math.random() - 0.5) * 0.01
         };
         
         observationDiv.observationLocation = mockLocation;
@@ -756,11 +904,17 @@
           // Clear existing content and initialize MapTiler overview map
           if (!overviewMapInstance) {
             overviewMapContainer.innerHTML = '';
+            
+            // Use property location if available, otherwise default
+            const center = propertyLocation ? 
+              [propertyLocation.lng, propertyLocation.lat] : 
+              [-74.0060, 40.7128];
+            
             overviewMapInstance = new maptilersdk.Map({
               container: overviewMapContainer,
               style: maptilersdk.MapStyle.SATELLITE,
-              center: [-74.0060, 40.7128],
-              zoom: 15
+              center: center,
+              zoom: propertyLocation ? 16 : 15
             });
           }
 
@@ -810,7 +964,7 @@
       `;
     }
 
-    // ==== Photo Handling ====
+    // ==== Photo Handling with Editing ====
     function handlePhotoUpload(section, files) {
       Array.from(files).forEach(file => {
         const reader = new FileReader();
@@ -829,16 +983,89 @@
         sec.photosDataUrls.forEach((u,i)=>{
           const w = document.createElement('div'); w.className='photo-wrapper';
           const im = document.createElement('img'); im.src=u;
-          const btn = document.createElement('button');
-          btn.className='remove-photo-btn'; btn.textContent='×';
-          btn.onclick=()=>{ sec.photosDataUrls.splice(i,1); updatePreview(sec); };
-          w.appendChild(im); w.appendChild(btn); ctr.appendChild(w);
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.className='remove-photo-btn'; removeBtn.textContent='×';
+          removeBtn.onclick=()=>{ sec.photosDataUrls.splice(i,1); updatePreview(sec); };
+          
+          const editBtn = document.createElement('button');
+          editBtn.className='edit-photo-btn'; editBtn.textContent='✎';
+          editBtn.onclick=()=>{ openPhotoEditor(sec, i); };
+          
+          w.appendChild(im); w.appendChild(removeBtn); w.appendChild(editBtn); ctr.appendChild(w);
         });
         sec.appendChild(ctr);
       }
     }
 
-    // ==== PDF Generation & Save ====
+    // ==== Photo Editing Functions ====
+    function openPhotoEditor(observationDiv, photoIndex) {
+      currentObservationDiv = observationDiv;
+      currentPhotoIndex = photoIndex;
+      
+      const modal = document.getElementById('photoEditModal');
+      const cropImage = document.getElementById('cropImage');
+      
+      cropImage.src = observationDiv.photosDataUrls[photoIndex];
+      modal.style.display = 'block';
+      
+      // Initialize cropper after image loads
+      cropImage.onload = () => {
+        if (currentCropper) {
+          currentCropper.destroy();
+        }
+        currentCropper = new Cropper(cropImage, {
+          aspectRatio: 1, // Square crop
+          viewMode: 1,
+          autoCropArea: 0.8,
+          responsive: true,
+          restore: false,
+          guides: true,
+          center: true,
+          highlight: false,
+          cropBoxMovable: true,
+          cropBoxResizable: true,
+          toggleDragModeOnDblclick: false
+        });
+      };
+    }
+
+    function closePhotoEditor() {
+      const modal = document.getElementById('photoEditModal');
+      modal.style.display = 'none';
+      
+      if (currentCropper) {
+        currentCropper.destroy();
+        currentCropper = null;
+      }
+      
+      currentObservationDiv = null;
+      currentPhotoIndex = null;
+    }
+
+    function rotateImage(degrees) {
+      if (currentCropper) {
+        currentCropper.rotate(degrees);
+      }
+    }
+
+    function applyCrop() {
+      if (currentCropper && currentObservationDiv && currentPhotoIndex !== null) {
+        const canvas = currentCropper.getCroppedCanvas({
+          width: 800,
+          height: 800,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high'
+        });
+        
+        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        currentObservationDiv.photosDataUrls[currentPhotoIndex] = croppedDataUrl;
+        updatePreview(currentObservationDiv);
+        closePhotoEditor();
+      }
+    }
+
+    // ==== Enhanced PDF Generation with Overview Map ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -937,23 +1164,59 @@
           }
         });
 
-        // Overview map page
+        // Overview map page (landscape)
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
-          doc.addPage(); y=20;
-          doc.setFont('helvetica','bold');
-          doc.text('📍 Overview Map - All Issues',20,y); y+=15;
-          doc.setFont('helvetica','normal');
-          doc.text(`Total issue locations marked: ${locationsCount}`,20,y); y+=10;
+          // Add landscape page
+          doc.addPage('a4', 'landscape');
+          const landscapeW = doc.internal.pageSize.getWidth();
+          const landscapeH = doc.internal.pageSize.getHeight();
+          y = 20;
           
+          doc.setFont('helvetica','bold');
+          doc.setFontSize(16);
+          doc.text('📍 Overview Map - All Issues', landscapeW/2, y, {align: 'center'}); 
+          y += 15;
+          
+          doc.setFont('helvetica','normal');
+          doc.setFontSize(12);
+          doc.text(`Total issue locations marked: ${locationsCount}`, 20, y); 
+          y += 10;
+          
+          // Create a visual representation of the overview map
+          const mapWidth = landscapeW - 40;
+          const mapHeight = landscapeH - 80;
+          
+          // Draw map border
+          doc.setDrawColor(0);
+          doc.setLineWidth(1);
+          doc.rect(20, y, mapWidth, mapHeight);
+          
+          // Add map title inside
+          doc.setFontSize(14);
+          doc.text('Interactive Overview Map', 30, y + 20);
+          doc.setFontSize(10);
+          doc.text('(Refer to web application for interactive version)', 30, y + 30);
+          
+          // List all locations with coordinates
+          let listY = y + 50;
           savedObs.forEach((obs, index) => {
             if (obs.location) {
-              doc.text(`Issue ${index + 1}: ${obs.location.lat.toFixed(6)}, ${obs.location.lng.toFixed(6)}`,20,y);
-              y+=8;
+              const locationText = `Issue ${index + 1}: ${obs.location.lat.toFixed(6)}, ${obs.location.lng.toFixed(6)}`;
+              if (listY > y + mapHeight - 20) {
+                // Start new column if running out of space
+                listY = y + 50;
+                // Move to right side
+              }
+              doc.text(locationText, 30, listY);
+              listY += 8;
             }
           });
-          y+=10;
-          doc.text('Refer to the web application for the interactive overview map.',20,y);
+          
+          // Add note about interactive map
+          doc.setFontSize(10);
+          doc.text('Note: This overview shows all marked issue locations. For interactive satellite imagery,', 20, landscapeH - 30);
+          doc.text('please refer to the web application at the property address location.', 20, landscapeH - 20);
         }
 
         // Save & upload
@@ -973,6 +1236,7 @@
           date,
           observations:savedObs,
           pdfUrl,
+          propertyLocation,
           updatedAt:Date.now()
         });
         
