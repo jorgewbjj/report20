@@ -276,7 +276,7 @@
 
   <script>
     // ==== Configuration ====
-    const MAPTILER_API_KEY = 'YOUR_MAPTILER_API_KEY_HERE'; // Replace with your actual MapTiler API key
+    const MAPTILER_API_KEY = 'D07LNHRpX8QqmkT39Nza'; // Replace with your actual MapTiler API key
     
     // Firebase init
     const firebaseConfig = {
@@ -380,7 +380,7 @@
     // ==== MapTiler Initialization ====
     function initializeMapTiler() {
       if (typeof maptilersdk !== 'undefined') {
-        if (MAPTILER_API_KEY !== 'YOUR_MAPTILER_API_KEY_HERE') {
+        if (MAPTILER_API_KEY !== 'D07LNHRpX8QqmkT39Nza') {
           maptilersdk.config.apiKey = MAPTILER_API_KEY;
           document.getElementById('mapsAlert').style.display = 'none';
         } else {
@@ -414,7 +414,7 @@
       }
 
       // Use MapTiler Geocoding API if available
-      if (maptilerLoaded && MAPTILER_API_KEY !== 'YOUR_MAPTILER_API_KEY_HERE') {
+      if (maptilerLoaded && MAPTILER_API_KEY !== 'D07LNHRpX8QqmkT39Nza') {
         searchWithMapTiler(query);
       } else {
         // Fallback to enhanced local suggestions
