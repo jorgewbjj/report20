@@ -348,7 +348,7 @@
 
   <!-- Overview Map -->
   <div class="form-group">
-    <h2>📍 Overview Map - All Issues</h2>
+    <h2>Overview Map - All Issues</h2>
     <p>This map shows all marked issue locations for this inspection</p>
     <div class="map-container overview-map" id="overviewMap">
       <div class="map-placeholder">
@@ -734,7 +734,7 @@
         <textarea class="observation-desc" placeholder="Describe the observation..." required></textarea>
         <label>Upload Photos:</label>
         <input type="file" class="observation-photos" multiple accept="image/*">
-        <label>📍 Issue Location:</label>
+        <label>Issue Location:</label>
         <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">Click on the map to mark the exact location of this issue</div>
         <div class="map-container observation-map" data-observation="${observationCount}">
           <div class="map-placeholder">
@@ -875,7 +875,7 @@
       const locationInfo = observationDiv.querySelector('.location-info');
       if (observationDiv.observationLocation) {
         const { lat, lng } = observationDiv.observationLocation;
-        locationInfo.textContent = `📍 Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        locationInfo.textContent = `Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         locationInfo.style.display = 'block';
       } else {
         locationInfo.style.display = 'none';
@@ -1065,7 +1065,7 @@
       }
     }
 
-    // ==== Enhanced PDF Generation with Overview Map ====
+    // ==== Enhanced PDF Generation with Fixed Text Encoding ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1099,13 +1099,25 @@
         const w = doc.internal.pageSize.getWidth();
         let y = 20;
 
-        // Header with logo
+        // Add logo to PDF
+        const logoBase64 = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K';
+        
+        try {
+          // Add logo (50x20 size)
+          doc.addImage(logoBase64, 'SVG', (w-50)/2, y, 50, 20);
+          y += 25;
+        } catch (logoError) {
+          console.error('Error adding logo:', logoError);
+          // Continue without logo
+        }
+
+        // Header
         doc.setFontSize(18); 
         doc.setTextColor(19,29,53);
         doc.text('SEAL TOP ROOF - Inspection Report',w/2,y,{align:'center'});
         y+=20;
 
-        // Report details
+        // Report details - NO EMOJIS, plain text only
         doc.setFontSize(12); 
         doc.setTextColor(0);
         const lines=[
@@ -1141,9 +1153,10 @@
           doc.setFont('helvetica','bold');
           doc.text(`Observation #${idx}:`,20,y); y+=6;
           
+          // Location without emoji - plain text only
           if(location) {
             doc.setFont('helvetica','normal');
-            doc.text(`📍 Location: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,20,y); y+=6;
+            doc.text(`Location: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,20,y); y+=6;
           }
           
           doc.setFont('helvetica','normal');
@@ -1164,7 +1177,7 @@
           }
         });
 
-        // Overview map page (landscape)
+        // Overview map page (landscape) - FIXED
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
           // Add landscape page
@@ -1173,9 +1186,18 @@
           const landscapeH = doc.internal.pageSize.getHeight();
           y = 20;
           
+          // Add logo to landscape page too
+          try {
+            doc.addImage(logoBase64, 'SVG', (landscapeW-50)/2, y, 50, 20);
+            y += 25;
+          } catch (logoError) {
+            console.error('Error adding logo to landscape page:', logoError);
+          }
+          
           doc.setFont('helvetica','bold');
           doc.setFontSize(16);
-          doc.text('📍 Overview Map - All Issues', landscapeW/2, y, {align: 'center'}); 
+          // NO EMOJI - plain text only
+          doc.text('Overview Map - All Issues', landscapeW/2, y, {align: 'center'}); 
           y += 15;
           
           doc.setFont('helvetica','normal');
@@ -1185,7 +1207,7 @@
           
           // Create a visual representation of the overview map
           const mapWidth = landscapeW - 40;
-          const mapHeight = landscapeH - 80;
+          const mapHeight = landscapeH - 120; // More space for coordinates
           
           // Draw map border
           doc.setDrawColor(0);
@@ -1196,27 +1218,45 @@
           doc.setFontSize(14);
           doc.text('Interactive Overview Map', 30, y + 20);
           doc.setFontSize(10);
-          doc.text('(Refer to web application for interactive version)', 30, y + 30);
+          doc.text('(Refer to web application for interactive satellite version)', 30, y + 30);
           
-          // List all locations with coordinates
-          let listY = y + 50;
+          // Visual representation of markers
           savedObs.forEach((obs, index) => {
             if (obs.location) {
-              const locationText = `Issue ${index + 1}: ${obs.location.lat.toFixed(6)}, ${obs.location.lng.toFixed(6)}`;
-              if (listY > y + mapHeight - 20) {
-                // Start new column if running out of space
-                listY = y + 50;
-                // Move to right side
-              }
-              doc.text(locationText, 30, listY);
-              listY += 8;
+              // Draw a small circle to represent marker
+              const markerX = 50 + (index * 30);
+              const markerY = y + 50 + (index * 15);
+              doc.setFillColor(220, 38, 38); // Red color
+              doc.circle(markerX, markerY, 3, 'F');
+              doc.setFontSize(8);
+              doc.text(`${index + 1}`, markerX - 2, markerY + 2);
+            }
+          });
+          
+          y += mapHeight + 10;
+          
+          // Add coordinates list at the bottom with small font
+          doc.setFont('helvetica','bold');
+          doc.setFontSize(12);
+          doc.text('Issue Locations Coordinates:', 20, y);
+          y += 8;
+          
+          doc.setFont('helvetica','normal');
+          doc.setFontSize(9); // Small font for coordinates
+          savedObs.forEach((obs, index) => {
+            if (obs.location) {
+              const coordText = `Issue ${index + 1}: ${obs.location.lat.toFixed(6)}, ${obs.location.lng.toFixed(6)}`;
+              doc.text(coordText, 20, y);
+              y += 6;
             }
           });
           
           // Add note about interactive map
-          doc.setFontSize(10);
-          doc.text('Note: This overview shows all marked issue locations. For interactive satellite imagery,', 20, landscapeH - 30);
-          doc.text('please refer to the web application at the property address location.', 20, landscapeH - 20);
+          y += 5;
+          doc.setFontSize(8);
+          doc.text('Note: This overview shows all marked issue locations. For interactive satellite imagery,', 20, y);
+          y += 4;
+          doc.text('please refer to the web application at the property address location.', 20, y);
         }
 
         // Save & upload
