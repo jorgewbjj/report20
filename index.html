@@ -1149,10 +1149,28 @@
           allMarkers.forEach(marker => marker.remove());
           allMarkers = [];
 
-          // Add markers for all observations
+          // Add NUMBERED markers for all observations
           locationsWithMarkers.forEach((obs, index) => {
+            // Create custom numbered marker element
+            const markerElement = document.createElement('div');
+            markerElement.style.cssText = `
+              background-color: #dc2626;
+              color: white;
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 14px;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            `;
+            markerElement.textContent = (index + 1).toString();
+            
             const marker = new maptilersdk.Marker({
-              color: '#dc2626' // SAME marker color
+              element: markerElement
             })
             .setLngLat([obs.observationLocation.lng, obs.observationLocation.lat])
             .addTo(overviewMapInstance);
@@ -1194,7 +1212,7 @@
       `;
     }
 
-    // ==== Map Capture for PDF (Uses Overview Map Settings) ====
+    // ==== Enhanced Map Capture for PDF with NUMBERED MARKERS ====
     async function createMapCaptureForPDF(observations) {
       if (!maptilerLoaded || observations.length === 0) {
         return null;
@@ -1229,11 +1247,29 @@
           captureMap.on('load', resolve);
         });
 
-        // Add markers with SAME style
+        // Add NUMBERED markers with SAME style as overview map
         observations.forEach((obs, index) => {
           if (obs.location) {
+            // Create custom numbered marker element for PDF capture
+            const markerElement = document.createElement('div');
+            markerElement.style.cssText = `
+              background-color: #dc2626;
+              color: white;
+              width: 30px;
+              height: 30px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 14px;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            `;
+            markerElement.textContent = (index + 1).toString();
+            
             new maptilersdk.Marker({
-              color: '#dc2626' // SAME marker color
+              element: markerElement
             })
             .setLngLat([obs.location.lng, obs.location.lat])
             .addTo(captureMap);
@@ -1244,8 +1280,8 @@
         captureMap.setCenter(center);
         captureMap.setZoom(18);
 
-        // Wait a bit for rendering
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait a bit for rendering and marker placement
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         // Capture the map
         const canvas = captureMap.getCanvas();
@@ -1390,7 +1426,7 @@
       }
     }
 
-    // ==== Enhanced PDF Generation with Direct Slack Sending ====
+    // ==== Enhanced PDF Generation with NUMBERED MARKERS in Overview Map ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1405,7 +1441,7 @@
         }
 
         // Show loading overlay
-        showLoadingOverlay('Generating PDF Report...', 'Creating your professional inspection report for direct Slack delivery.');
+        showLoadingOverlay('Generating PDF Report...', 'Creating your professional inspection report with numbered overview map.');
 
         // Check if jsPDF is available
         if (typeof window.jspdf === 'undefined') {
@@ -1517,12 +1553,12 @@
           }
         });
 
-        // Enhanced Overview map page (landscape) with REAL MAP CAPTURE
+        // Enhanced Overview map page (landscape) with NUMBERED MARKERS
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
-          console.log('Creating overview map for PDF...');
+          console.log('Creating overview map with numbered markers for PDF...');
           
-          // Create real map capture using SAME settings as overview map
+          // Create real map capture using SAME settings as overview map WITH NUMBERED MARKERS
           const mapImageDataUrl = await createMapCaptureForPDF(savedObs);
           
           // Add landscape page
@@ -1555,9 +1591,9 @@
           const mapHeight = landscapeH - 140; // Space for coordinates
           
           if (mapImageDataUrl) {
-            // Add actual map image
+            // Add actual map image WITH NUMBERED MARKERS
             try {
-              console.log('Adding real map image to PDF (matches overview map)');
+              console.log('Adding real map image with numbered markers to PDF');
               doc.addImage(mapImageDataUrl, 'PNG', 20, y, mapWidth, mapHeight);
               y += mapHeight + 10;
             } catch (mapImageError) {
@@ -1566,8 +1602,8 @@
               addVisualMapRepresentation();
             }
           } else {
-            // Fallback: Visual representation
-            console.log('Using fallback visual representation');
+            // Fallback: Visual representation with numbered markers
+            console.log('Using fallback visual representation with numbered markers');
             addVisualMapRepresentation();
           }
           
@@ -1579,21 +1615,29 @@
             
             // Add map title inside
             doc.setFontSize(14);
-            doc.text('Interactive Overview Map', 30, y + 20);
+            doc.text('Interactive Overview Map with Numbered Markers', 30, y + 20);
             doc.setFontSize(10);
             doc.text('(Refer to web application for interactive satellite version)', 30, y + 35);
             
-            // Visual representation of markers
+            // Visual representation of NUMBERED markers
             savedObs.forEach((obs, index) => {
               if (obs.location) {
-                // Draw a small circle to represent marker
-                const markerX = 50 + (index * 40);
-                const markerY = y + 60 + (index * 20);
+                const markerX = 50 + (index * 50);
+                const markerY = y + 60 + (Math.floor(index / 5) * 30);
+                
+                // Draw numbered circle marker
                 doc.setFillColor(220, 38, 38); // Red color
-                doc.circle(markerX, markerY, 4, 'F');
-                doc.setFontSize(10);
+                doc.circle(markerX, markerY, 8, 'F');
+                
+                // Add white border
+                doc.setDrawColor(255, 255, 255);
+                doc.setLineWidth(2);
+                doc.circle(markerX, markerY, 8, 'S');
+                
+                // Add number inside marker
+                doc.setFontSize(12);
                 doc.setTextColor(255, 255, 255);
-                doc.text(`${index + 1}`, markerX - 3, markerY + 3);
+                doc.text(`${index + 1}`, markerX - 3, markerY + 4);
                 doc.setTextColor(0, 0, 0);
               }
             });
@@ -1620,7 +1664,7 @@
           // Add note about interactive map
           y += 5;
           doc.setFontSize(8);
-          doc.text('Note: This overview shows all marked issue locations. For interactive satellite imagery,', 20, y);
+          doc.text('Note: This overview shows all marked issue locations with numbered markers. For interactive satellite imagery,', 20, y);
           y += 4;
           doc.text('please refer to the web application at the property address location.', 20, y);
         }
@@ -1645,8 +1689,8 @@
         // Send directly to Slack (NO Firebase storage)
         await sendToSlack(blob, reportData);
         
-        showNotification('success', '✅ PDF Generated & Sent to Slack!', 
-          'Report created and delivered directly to your team without database storage.');
+        showNotification('success', '✅ PDF Generated with Numbered Markers!', 
+          'Report created with numbered overview map and delivered directly to your team.');
 
       } catch(err){
         hideLoadingOverlay();
