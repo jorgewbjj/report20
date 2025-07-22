@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>SEAL TOP ROOF - Inspection Report</title>
+  <style>
+    :root {
+      --primary-color: #007bff;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --text-color: #2c3e50;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 15px;
+      color: var(--text-color);
+      font-size: 16px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 15px 0;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    .logo { height: 60px; margin-bottom: 10px; }
+    .form-group {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+    label { font-weight: bold; display: block; margin-bottom: 8px; }
+    input, select, textarea {
+      width: 100%; padding: 12px;
+      border: 1px solid #ced4da; border-radius: 6px;
+      font-size: 16px; margin-bottom: 12px;
+    }
+    textarea { min-height: 100px; }
+    .top-details {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    @media(max-width:480px){
+      .top-details { grid-template-columns:1fr; }
+      button { width: 100%; }
+    }
+    .button-group {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;
+    }
+    button {
+      padding: 14px 20px; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 16px; flex: 1; min-width: 120px;
+      transition: opacity .2s;
+    }
+    button:active { opacity: .8; }
+    .add-btn { background: var(--success-color); color: #fff; }
+    .remove-btn { background: var(--danger-color); color: #fff; }
+    .submit-btn { background: var(--primary-color); color: #fff; }
+
+    #reportsTable {
+      width: 100%; border-collapse: collapse; margin-top: 10px;
+    }
+    #reportsTable th, #reportsTable td {
+      border: 1px solid #ccc; padding: 8px; text-align: left;
+    }
+    #reportsTable th { background: #f0f0f0; }
+
+    .photo-previews { margin-top: 10px; }
+    .photo-wrapper {
+      position: relative;
+      display: inline-block;
+      margin: 4px;
+    }
+    .photo-wrapper img {
+      width: 80px; height: 80px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .remove-photo-btn {
+      position: absolute;
+      top: 2px; right: 2px;
+      background: rgba(0,0,0,0.6);
+      color: #fff; border: none;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      font-size: 14px;
+      line-height: 18px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    /* Address autocomplete styles */
+    .address-container {
+      position: relative;
+    }
+    .address-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ced4da;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+    .address-suggestion {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+    .address-suggestion:hover {
+      background: #f8f9fa;
+    }
+    .address-suggestion:last-child {
+      border-bottom: none;
+    }
+
+    /* Map styles */
+    .map-container {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      margin-top: 10px;
+      position: relative;
+      background: #f8f9fa;
+    }
+    .map-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      color: #6c757d;
+    }
+    .map-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .overview-map {
+      height: 400px;
+    }
+    .location-info {
+      font-size: 12px;
+      color: var(--success-color);
+      margin-top: 5px;
+    }
+
+    /* Alert styles */
+    .alert {
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background-color: #d1ecf1;
+      border-color: #bee5eb;
+      color: #0c5460;
+    }
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-storage-compat.js"></script>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <!-- Google Maps API Key Alert -->
+  <div class="alert" id="mapsAlert">
+    ⚠️ To enable full mapping features, please add your Google Maps API key in the script section. The application will work with enhanced address suggestions and placeholder maps until then.
+  </div>
+
+  <div class="form-group">
+    <label for="reportList">Select or Edit Report:</label>
+    <select id="reportList">
+      <option value="">New Report</option>
+    </select>
+  </div>
+
+  <div id="pastReports" class="form-group">
+    <h2>Past Reports</h2>
+    <table id="reportsTable">
+      <thead>
+        <tr><th>Date</th><th>Property</th><th>Action</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="header">
+    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjAwIDgwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMDA3YmZmIi8+Cjx0ZXh0IHg9IjEwMCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TRUFMIFRSUCBST09GPC90ZXh0Pgo8dGV4dCB4PSIxMDAiIHk9IjUwIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9mZXNzaW9uYWwgUm9vZiBJbnNwZWN0aW9uPC90ZXh0Pgo8L3N2Zz4K" class="logo" alt="SEAL TOP ROOF Logo">
+    <h1>Roof Inspection Report</h1>
+  </div>
+
+  <div class="top-details">
+    <div class="form-group">
+      <label>Property:</label>
+      <div class="address-container">
+        <input type="text" id="address" placeholder="Start typing address or zip code..." required>
+        <div class="address-suggestions" id="addressSuggestions"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Inspector Name:</label>
+      <select id="inspector" required>
+        <option>Arister Cruz</option>
+        <option>Jorge Woicikoski</option>
+        <option>Pedro Ortiz</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Roof Type:</label>
+      <select id="roof-type" required>
+        <option>TPO</option><option>PVC</option><option>Metal</option>
+        <option>Modified</option><option>Shingle</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Roof Condition:</label>
+      <select id="roof-condition" required>
+        <option>Good</option><option>Fair</option><option>Poor</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Inspection Date:</label>
+    <input type="date" id="date" required>
+  </div>
+
+  <div id="observations-container"></div>
+
+  <div class="button-group">
+    <button class="add-btn" onclick="addObservation()">Add Observation</button>
+    <button class="submit-btn" onclick="generatePDF()">Save &amp; Generate PDF</button>
+  </div>
+
+  <!-- Overview Map -->
+  <div class="form-group">
+    <h2>📍 Overview Map - All Issues</h2>
+    <p>This map shows all marked issue locations for this inspection</p>
+    <div class="map-container overview-map" id="overviewMap">
+      <div class="map-placeholder">
+        <div class="map-icon">🗺️</div>
+        <div>Overview Map</div>
+        <div style="font-size: 14px; margin-top: 5px;">All issue locations will be displayed here</div>
+        <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==== Configuration ====
+    const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY_HERE'; // Replace with your actual API key
+    
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyByxwR_TWiWYMe65G9AxBFgv-_oxX9MThk",
+      authDomain: "fieldreport-1c1d2.firebaseapp.com",
+      projectId: "fieldreport-1c1d2",
+      storageBucket: "fieldreport-1c1d2.firebasestorage.app",
+      messagingSenderId: "752765269064",
+      appId: "1:752765269064:web:c31c85f245e0c29ba4947d",
+      measurementId: "G-18DP7CSDW9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    // ==== Global Variables ====
+    let loadedReportId = "";
+    let observationCount = 0;
+    let googleMaps = null;
+    let autocompleteService = null;
+    let observationMaps = {};
+    let overviewMapInstance = null;
+    let allMarkers = [];
+
+    // ==== DOM refs ====
+    const reportList = document.getElementById('reportList');
+    const pastReportsBody = document.querySelector('#reportsTable tbody');
+    const obsContainer = document.getElementById('observations-container');
+    const addressInput = document.getElementById('address');
+    const addressSuggestions = document.getElementById('addressSuggestions');
+
+    // ==== Enhanced Address Database ====
+    const addressDatabase = [
+      // Major US Cities with zip codes
+      { address: "New York, NY 10001", type: "city" },
+      { address: "Los Angeles, CA 90210", type: "city" },
+      { address: "Chicago, IL 60601", type: "city" },
+      { address: "Houston, TX 77001", type: "city" },
+      { address: "Phoenix, AZ 85001", type: "city" },
+      { address: "Philadelphia, PA 19101", type: "city" },
+      { address: "San Antonio, TX 78201", type: "city" },
+      { address: "San Diego, CA 92101", type: "city" },
+      { address: "Dallas, TX 75201", type: "city" },
+      { address: "San Jose, CA 95101", type: "city" },
+      { address: "Austin, TX 78701", type: "city" },
+      { address: "Jacksonville, FL 32099", type: "city" },
+      { address: "Fort Worth, TX 76101", type: "city" },
+      { address: "Columbus, OH 43085", type: "city" },
+      { address: "Charlotte, NC 28201", type: "city" },
+      { address: "San Francisco, CA 94102", type: "city" },
+      { address: "Indianapolis, IN 46201", type: "city" },
+      { address: "Seattle, WA 98101", type: "city" },
+      { address: "Denver, CO 80201", type: "city" },
+      { address: "Boston, MA 02101", type: "city" },
+      { address: "El Paso, TX 79901", type: "city" },
+      { address: "Detroit, MI 48201", type: "city" },
+      { address: "Nashville, TN 37201", type: "city" },
+      { address: "Portland, OR 97201", type: "city" },
+      { address: "Memphis, TN 38101", type: "city" },
+      { address: "Oklahoma City, OK 73101", type: "city" },
+      { address: "Las Vegas, NV 89101", type: "city" },
+      { address: "Louisville, KY 40201", type: "city" },
+      { address: "Baltimore, MD 21201", type: "city" },
+      { address: "Milwaukee, WI 53201", type: "city" },
+      { address: "Albuquerque, NM 87101", type: "city" },
+      { address: "Tucson, AZ 85701", type: "city" },
+      { address: "Fresno, CA 93701", type: "city" },
+      { address: "Mesa, AZ 85201", type: "city" },
+      { address: "Sacramento, CA 95814", type: "city" },
+      { address: "Atlanta, GA 30301", type: "city" },
+      { address: "Kansas City, MO 64101", type: "city" },
+      { address: "Colorado Springs, CO 80901", type: "city" },
+      { address: "Miami, FL 33101", type: "city" },
+      { address: "Raleigh, NC 27601", type: "city" },
+      { address: "Omaha, NE 68101", type: "city" },
+      { address: "Long Beach, CA 90801", type: "city" },
+      { address: "Virginia Beach, VA 23451", type: "city" },
+      { address: "Oakland, CA 94601", type: "city" },
+      { address: "Minneapolis, MN 55401", type: "city" },
+      { address: "Tulsa, OK 74101", type: "city" },
+      { address: "Arlington, TX 76010", type: "city" },
+      { address: "Tampa, FL 33601", type: "city" },
+      { address: "New Orleans, LA 70112", type: "city" },
+      { address: "Wichita, KS 67202", type: "city" }
+    ];
+
+    // ==== Initialization ====
+    window.addEventListener('DOMContentLoaded', () => {
+      setDefaultDate();
+      loadReports();
+      addObservation();
+      initializeGoogleMaps();
+      setupAddressAutocomplete();
+    });
+
+    function setDefaultDate() {
+      const d = new Date();
+      document.getElementById('date').value =
+        `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ==== Google Maps Initialization ====
+    function initializeGoogleMaps() {
+      if (GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+        console.log('Google Maps API key not configured. Using enhanced fallback mode.');
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=onGoogleMapsLoaded`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+
+    window.onGoogleMapsLoaded = function() {
+      googleMaps = window.google;
+      autocompleteService = new googleMaps.maps.places.AutocompleteService();
+      console.log('Google Maps loaded successfully');
+      document.getElementById('mapsAlert').style.display = 'none';
+    };
+
+    // ==== Enhanced Address Autocomplete ====
+    function setupAddressAutocomplete() {
+      addressInput.addEventListener('input', handleAddressInput);
+      addressInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          addressSuggestions.style.display = 'none';
+        }, 200);
+      });
+    }
+
+    function handleAddressInput(e) {
+      const query = e.target.value.trim();
+      
+      if (query.length < 2) {
+        addressSuggestions.style.display = 'none';
+        return;
+      }
+
+      // Try Google Places API first
+      if (autocompleteService) {
+        autocompleteService.getPlacePredictions({
+          input: query,
+          types: ['address'],
+          componentRestrictions: { country: 'us' }
+        }, (predictions, status) => {
+          if (status === googleMaps.maps.places.PlacesServiceStatus.OK && predictions) {
+            showAddressSuggestions(predictions.map(p => p.description));
+          } else {
+            // Fallback to enhanced local suggestions
+            showEnhancedLocalSuggestions(query);
+          }
+        });
+      } else {
+        // Use enhanced local suggestions
+        showEnhancedLocalSuggestions(query);
+      }
+    }
+
+    function showEnhancedLocalSuggestions(query) {
+      const suggestions = [];
+      const queryLower = query.toLowerCase();
+      
+      // Check if it's a zip code (5 digits)
+      if (/^\d{1,5}$/.test(query)) {
+        // Generate zip code suggestions
+        const baseZip = query.padEnd(5, '0');
+        for (let i = 0; i < 5; i++) {
+          const zip = (parseInt(baseZip) + i).toString().padStart(5, '0');
+          suggestions.push(`${zip} - ${getRandomCity()}`);
+        }
+      } else {
+        // Search address database
+        addressDatabase.forEach(item => {
+          if (item.address.toLowerCase().includes(queryLower)) {
+            suggestions.push(item.address);
+          }
+        });
+
+        // Generate street address suggestions
+        const streetTypes = ['Street', 'Avenue', 'Road', 'Boulevard', 'Drive', 'Lane', 'Court', 'Place'];
+        const cities = ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ'];
+        
+        if (suggestions.length < 5) {
+          streetTypes.forEach(type => {
+            cities.forEach(city => {
+              if (suggestions.length < 8) {
+                suggestions.push(`${query} ${type}, ${city}`);
+              }
+            });
+          });
+        }
+      }
+
+      showAddressSuggestions(suggestions.slice(0, 8));
+    }
+
+    function getRandomCity() {
+      const cities = [
+        'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX',
+        'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA',
+        'Dallas, TX', 'San Jose, CA', 'Austin, TX', 'Jacksonville, FL'
+      ];
+      return cities[Math.floor(Math.random() * cities.length)];
+    }
+
+    function showAddressSuggestions(suggestions) {
+      addressSuggestions.innerHTML = '';
+      
+      if (suggestions.length === 0) {
+        addressSuggestions.style.display = 'none';
+        return;
+      }
+
+      suggestions.forEach(suggestion => {
+        const div = document.createElement('div');
+        div.className = 'address-suggestion';
+        div.textContent = suggestion;
+        div.addEventListener('click', () => {
+          addressInput.value = suggestion;
+          addressSuggestions.style.display = 'none';
+        });
+        addressSuggestions.appendChild(div);
+      });
+
+      addressSuggestions.style.display = 'block';
+    }
+
+    // ==== Reports Management ====
+    async function loadReports() {
+      const snap = await db.ref('reports').once('value');
+      reportList.querySelectorAll('option:not([value=""])').forEach(o=>o.remove());
+      pastReportsBody.innerHTML = '';
+      snap.forEach(ch => {
+        const d = ch.val();
+        const opt = document.createElement('option');
+        opt.value = ch.key;
+        opt.textContent = `${d.date} — ${d.address}`;
+        reportList.appendChild(opt);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.date}</td><td>${d.address}</td><td><button onclick="loadReport('${ch.key}')">Edit</button></td>`;
+        pastReportsBody.appendChild(tr);
+      });
+    }
+
+    reportList.addEventListener('change', () => {
+      const id = reportList.value;
+      if (!id) return resetForm();
+      loadReport(id);
+    });
+
+    async function loadReport(id) {
+      const snap = await db.ref(`reports/${id}`).once('value');
+      const d = snap.val();
+      loadedReportId = id;
+      document.getElementById('address').value = d.address;
+      document.getElementById('inspector').value = d.inspector;
+      document.getElementById('roof-type').value = d.roofType;
+      document.getElementById('roof-condition').value = d.roofCondition;
+      document.getElementById('date').value = d.date;
+      obsContainer.innerHTML = '';
+      observationCount = 0;
+      d.observations.forEach(obs => {
+        addObservation();
+        const sec = obsContainer.children[observationCount-1];
+        sec.querySelector('.observation-desc').value = obs.desc;
+        sec.photosDataUrls = obs.photos.slice();
+        sec.observationLocation = obs.location;
+        updatePreview(sec);
+        updateLocationDisplay(sec);
+      });
+      reportList.value = id;
+    }
+
+    function resetForm() {
+      loadedReportId = '';
+      ['address','inspector','roof-type','roof-condition'].forEach(id=>{
+        const el = document.getElementById(id);
+        if (el.tagName==='SELECT') el.selectedIndex=0;
+        else el.value='';
+      });
+      setDefaultDate();
+      obsContainer.innerHTML = '';
+      observationCount = 0;
+      addObservation();
+    }
+
+    // ==== Observations & Maps ====
+    function addObservation() {
+      const div = document.createElement('div');
+      div.className = 'form-group observation-section';
+      div.innerHTML = `
+        <label>Observation #${observationCount + 1}:</label>
+        <textarea class="observation-desc" placeholder="Describe the observation..." required></textarea>
+        <label>Upload Photos:</label>
+        <input type="file" class="observation-photos" multiple accept="image/*">
+        <label>📍 Issue Location:</label>
+        <div style="font-size: 14px; color: #6c757d; margin-bottom: 10px;">Click on the map to mark the exact location of this issue</div>
+        <div class="map-container observation-map" data-observation="${observationCount}">
+          <div class="map-placeholder">
+            <div class="map-icon">📍</div>
+            <div>Interactive Map</div>
+            <div style="font-size: 14px; margin-top: 5px;">Click to mark issue location</div>
+          </div>
+        </div>
+        <div class="location-info" style="display: none;"></div>
+        <div class="button-group">
+          <button type="button" class="remove-btn" onclick="removeObservation(this)">Remove Observation</button>
+        </div>
+      `;
+      obsContainer.appendChild(div);
+      observationCount++;
+      
+      div.photosDataUrls = [];
+      div.observationLocation = null;
+      
+      const input = div.querySelector('.observation-photos');
+      input.onchange = e => handlePhotoUpload(div, e.target.files);
+      
+      // Initialize map for this observation
+      initObservationMap(div);
+    }
+
+    function removeObservation(btn) {
+      if (observationCount > 1) {
+        btn.closest('.observation-section').remove();
+        observationCount--;
+        updateObservationNumbers();
+      } else {
+        alert('At least one observation is required');
+      }
+    }
+
+    function updateObservationNumbers() {
+      const sections = document.querySelectorAll('.observation-section');
+      sections.forEach((section, index) => {
+        section.querySelector('label').textContent = `Observation #${index + 1}:`;
+      });
+    }
+
+    function initObservationMap(observationDiv) {
+      const mapContainer = observationDiv.querySelector('.observation-map');
+      
+      if (googleMaps) {
+        // Initialize real Google Map
+        const map = new googleMaps.maps.Map(mapContainer, {
+          zoom: 18,
+          center: { lat: 40.7128, lng: -74.0060 },
+          mapTypeId: 'satellite'
+        });
+
+        map.addListener('click', (event) => {
+          const location = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+          };
+          
+          // Remove existing marker
+          if (observationDiv.marker) {
+            observationDiv.marker.setMap(null);
+          }
+          
+          // Add new marker
+          observationDiv.marker = new googleMaps.maps.Marker({
+            position: location,
+            map: map,
+            title: 'Issue Location'
+          });
+          
+          observationDiv.observationLocation = location;
+          updateLocationDisplay(observationDiv);
+          updateOverviewMap();
+        });
+
+        observationDiv.map = map;
+        
+        // If location already exists, add marker
+        if (observationDiv.observationLocation) {
+          observationDiv.marker = new googleMaps.maps.Marker({
+            position: observationDiv.observationLocation,
+            map: map,
+            title: 'Issue Location'
+          });
+          map.setCenter(observationDiv.observationLocation);
+        }
+      } else {
+        // Fallback: clickable placeholder
+        mapContainer.style.cursor = 'pointer';
+        mapContainer.addEventListener('click', () => {
+          // Simulate location selection
+          const mockLocation = {
+            lat: 40.7128 + (Math.random() - 0.5) * 0.01,
+            lng: -74.0060 + (Math.random() - 0.5) * 0.01
+          };
+          
+          observationDiv.observationLocation = mockLocation;
+          mapContainer.innerHTML = `
+            <div class="map-placeholder">
+              <div class="map-icon">📍</div>
+              <div>Location Marked!</div>
+              <div style="font-size: 14px; margin-top: 5px;">Click again to change location</div>
+            </div>
+          `;
+          updateLocationDisplay(observationDiv);
+          updateOverviewMap();
+        });
+      }
+    }
+
+    function updateLocationDisplay(observationDiv) {
+      const locationInfo = observationDiv.querySelector('.location-info');
+      if (observationDiv.observationLocation) {
+        const { lat, lng } = observationDiv.observationLocation;
+        locationInfo.textContent = `📍 Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        locationInfo.style.display = 'block';
+      } else {
+        locationInfo.style.display = 'none';
+      }
+    }
+
+    function updateOverviewMap() {
+      const overviewMapContainer = document.getElementById('overviewMap');
+      const observations = document.querySelectorAll('.observation-section');
+      const locationsWithMarkers = Array.from(observations).filter(obs => obs.observationLocation);
+      
+      if (locationsWithMarkers.length === 0) {
+        overviewMapContainer.innerHTML = `
+          <div class="map-placeholder">
+            <div class="map-icon">🗺️</div>
+            <div>Overview Map</div>
+            <div style="font-size: 14px; margin-top: 5px;">All issue locations will be displayed here</div>
+            <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
+          </div>
+        `;
+        return;
+      }
+
+      if (googleMaps) {
+        // Initialize real overview map
+        if (!overviewMapInstance) {
+          overviewMapInstance = new googleMaps.maps.Map(overviewMapContainer, {
+            zoom: 15,
+            center: { lat: 40.7128, lng: -74.0060 },
+            mapTypeId: 'satellite'
+          });
+        }
+
+        // Clear existing markers
+        allMarkers.forEach(marker => marker.setMap(null));
+        allMarkers = [];
+
+        // Add markers for all observations
+        const bounds = new googleMaps.maps.LatLngBounds();
+        locationsWithMarkers.forEach((obs, index) => {
+          const marker = new googleMaps.maps.Marker({
+            position: obs.observationLocation,
+            map: overviewMapInstance,
+            title: `Observation ${index + 1}`,
+            label: (index + 1).toString()
+          });
+          allMarkers.push(marker);
+          bounds.extend(obs.observationLocation);
+        });
+
+        if (locationsWithMarkers.length > 1) {
+          overviewMapInstance.fitBounds(bounds);
+        } else {
+          overviewMapInstance.setCenter(locationsWithMarkers[0].observationLocation);
+          overviewMapInstance.setZoom(18);
+        }
+      } else {
+        // Fallback overview display
+        overviewMapContainer.innerHTML = `
+          <div class="map-placeholder">
+            <div class="map-icon">🗺️</div>
+            <div>Overview Map</div>
+            <div style="font-size: 14px; margin-top: 5px;">${locationsWithMarkers.length} issue location(s) marked</div>
+            <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">
+              ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // ==== Photo Handling ====
+    function handlePhotoUpload(section, files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          section.photosDataUrls.push(e.target.result);
+          updatePreview(section);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function updatePreview(sec) {
+      sec.querySelectorAll('.photo-previews').forEach(e=>e.remove());
+      if(sec.photosDataUrls?.length){
+        const ctr = document.createElement('div'); ctr.className='photo-previews';
+        sec.photosDataUrls.forEach((u,i)=>{
+          const w = document.createElement('div'); w.className='photo-wrapper';
+          const im = document.createElement('img'); im.src=u;
+          const btn = document.createElement('button');
+          btn.className='remove-photo-btn'; btn.textContent='×';
+          btn.onclick=()=>{ sec.photosDataUrls.splice(i,1); updatePreview(sec); };
+          w.appendChild(im); w.appendChild(btn); ctr.appendChild(w);
+        });
+        sec.appendChild(ctr);
+      }
+    }
+
+    // ==== PDF Generation & Save ====
+    const { jsPDF } = window.jspdf;
+    async function generatePDF(){
+      try {
+        const address = document.getElementById('address').value.trim();
+        const inspector = document.getElementById('inspector').value;
+        const roofType = document.getElementById('roof-type').value;
+        const roofCondition = document.getElementById('roof-condition').value;
+        const date = document.getElementById('date').value;
+
+        if (!address) {
+          alert('Please enter a property address');
+          return;
+        }
+
+        let ref;
+        if(loadedReportId) ref = db.ref(`reports/${loadedReportId}`);
+        else {
+          ref = db.ref('reports').push();
+          loadedReportId = ref.key;
+        }
+
+        const doc = new jsPDF({ compress: true });
+        const w = doc.internal.pageSize.getWidth();
+        let y = 20;
+
+        // Header with logo
+        doc.setFontSize(18); doc.setTextColor(19,29,53);
+        doc.text('SEAL TOP ROOF - Inspection Report',w/2,y,{align:'center'});
+        y+=20;
+
+        // Report details
+        doc.setFontSize(12); doc.setTextColor(0);
+        const lines=[
+          `Property: ${address}`,
+          `Inspector: ${inspector}`,
+          `Date: ${date}`,
+          `Roof Type: ${roofType}`,
+          `Roof Condition: ${roofCondition}`
+        ];
+        lines.forEach(l=>{
+          if(y>280){ doc.addPage(); y=20; }
+          doc.text(l,20,y); y+=8;
+        });
+        y+=8;
+
+        // Observations
+        const secs = [...document.querySelectorAll('.observation-section')];
+        const savedObs=[];
+        const imgSize=(w-45)/2;
+
+        secs.forEach((sec,i)=>{
+          const idx=i+1;
+          const desc=sec.querySelector('.observation-desc').value.trim();
+          const photos=sec.photosDataUrls||[];
+          const location=sec.observationLocation;
+          savedObs.push({desc,photos,location});
+          
+          const txt=doc.splitTextToSize(desc,w-40);
+          const txtH=txt.length*6+20;
+          const imgsH=Math.ceil(photos.length/2)*(imgSize+5);
+          if(y+txtH+imgsH>280){ doc.addPage(); y=20; }
+          
+          doc.setFont('helvetica','bold');
+          doc.text(`Observation #${idx}:`,20,y); y+=6;
+          
+          if(location) {
+            doc.setFont('helvetica','normal');
+            doc.text(`📍 Location: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`,20,y); y+=6;
+          }
+          
+          doc.setFont('helvetica','normal');
+          txt.forEach(line=>{ doc.text(line,20,y); y+=6; });
+          y+=4;
+          
+          for(let j=0;j<photos.length;j+=2){
+            if(y+imgSize>280){ doc.addPage(); y=20; }
+            doc.addImage(photos[j],'JPEG',20,y,imgSize,imgSize,undefined,'SLOW');
+            if(photos[j+1]){
+              doc.addImage(photos[j+1],'JPEG',20+imgSize+5,y,imgSize,imgSize,undefined,'SLOW');
+            }
+            y+=imgSize+5;
+          }
+        });
+
+        // Overview map page
+        const locationsCount = savedObs.filter(obs => obs.location).length;
+        if (locationsCount > 0) {
+          doc.addPage(); y=20;
+          doc.setFont('helvetica','bold');
+          doc.text('📍 Overview Map - All Issues',20,y); y+=15;
+          doc.setFont('helvetica','normal');
+          doc.text(`Total issue locations marked: ${locationsCount}`,20,y); y+=10;
+          
+          savedObs.forEach((obs, index) => {
+            if (obs.location) {
+              doc.text(`Issue ${index + 1}: ${obs.location.lat.toFixed(6)}, ${obs.location.lng.toFixed(6)}`,20,y);
+              y+=8;
+            }
+          });
+          y+=10;
+          doc.text('Refer to the web application for the interactive overview map.',20,y);
+        }
+
+        // Save & upload
+        const blob=doc.output('blob');
+        const filename=`Inspection_Report_${address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${date}.pdf`;
+        doc.save(filename);
+        
+        const storageRef=storage.ref(`reports/${loadedReportId}/${filename}`);
+        await storageRef.put(blob,{contentType:'application/pdf'});
+        const pdfUrl=await storageRef.getDownloadURL();
+        await ref.set({address,inspector,roofType,roofCondition,date,observations:savedObs,pdfUrl,updatedAt:Date.now()});
+        
+        alert('Report saved, PDF generated & uploaded!');
+        loadReports();
+
+      } catch(err){
+        console.error(err);
+        alert('Error: '+err.message);
+      }
+    }
+  </script>
+</body>
+</html>
+
