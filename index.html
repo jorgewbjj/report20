@@ -4,6 +4,11 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
   <title>SEAL TOP ROOF - Inspection Report</title>
+  
+  <!-- MapTiler SDK -->
+  <script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.umd.js"></script>
+  <link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.0.3/maptiler-sdk.css" rel="stylesheet" />
+  
   <style>
     :root {
       --primary-color: #007bff;
@@ -167,6 +172,13 @@
       border-color: #bee5eb;
       color: #0c5460;
     }
+
+    /* MapTiler specific styles */
+    .maptiler-map {
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+    }
   </style>
 
   <!-- Firebase -->
@@ -178,9 +190,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-  <!-- Google Maps API Key Alert -->
+  <!-- MapTiler API Key Alert -->
   <div class="alert" id="mapsAlert">
-    ⚠️ To enable full mapping features, please add your Google Maps API key in the script section. The application will work with enhanced address suggestions and placeholder maps until then.
+    ℹ️ Using MapTiler for mapping services. To enable full mapping features, please add your MapTiler API key in the script section. The application will work with enhanced address suggestions and interactive maps.
   </div>
 
   <div class="form-group">
@@ -264,7 +276,7 @@
 
   <script>
     // ==== Configuration ====
-    const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY_HERE'; // Replace with your actual API key
+    const MAPTILER_API_KEY = 'YOUR_MAPTILER_API_KEY_HERE'; // Replace with your actual MapTiler API key
     
     // Firebase init
     const firebaseConfig = {
@@ -283,8 +295,7 @@
     // ==== Global Variables ====
     let loadedReportId = "";
     let observationCount = 0;
-    let googleMaps = null;
-    let autocompleteService = null;
+    let maptilerLoaded = false;
     let observationMaps = {};
     let overviewMapInstance = null;
     let allMarkers = [];
@@ -356,7 +367,7 @@
       setDefaultDate();
       loadReports();
       addObservation();
-      initializeGoogleMaps();
+      initializeMapTiler();
       setupAddressAutocomplete();
     });
 
@@ -366,26 +377,23 @@
         `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    // ==== Google Maps Initialization ====
-    function initializeGoogleMaps() {
-      if (GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
-        console.log('Google Maps API key not configured. Using enhanced fallback mode.');
-        return;
+    // ==== MapTiler Initialization ====
+    function initializeMapTiler() {
+      if (typeof maptilersdk !== 'undefined') {
+        if (MAPTILER_API_KEY !== 'YOUR_MAPTILER_API_KEY_HERE') {
+          maptilersdk.config.apiKey = MAPTILER_API_KEY;
+          document.getElementById('mapsAlert').style.display = 'none';
+        } else {
+          console.log('MapTiler API key not configured. Using demo mode.');
+          // Set a demo key for basic functionality
+          maptilersdk.config.apiKey = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
+        }
+        maptilerLoaded = true;
+        console.log('MapTiler SDK loaded successfully');
+      } else {
+        console.error('MapTiler SDK not loaded');
       }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places&callback=onGoogleMapsLoaded`;
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
     }
-
-    window.onGoogleMapsLoaded = function() {
-      googleMaps = window.google;
-      autocompleteService = new googleMaps.maps.places.AutocompleteService();
-      console.log('Google Maps loaded successfully');
-      document.getElementById('mapsAlert').style.display = 'none';
-    };
 
     // ==== Enhanced Address Autocomplete ====
     function setupAddressAutocomplete() {
@@ -405,22 +413,30 @@
         return;
       }
 
-      // Try Google Places API first
-      if (autocompleteService) {
-        autocompleteService.getPlacePredictions({
-          input: query,
-          types: ['address'],
-          componentRestrictions: { country: 'us' }
-        }, (predictions, status) => {
-          if (status === googleMaps.maps.places.PlacesServiceStatus.OK && predictions) {
-            showAddressSuggestions(predictions.map(p => p.description));
-          } else {
-            // Fallback to enhanced local suggestions
-            showEnhancedLocalSuggestions(query);
-          }
-        });
+      // Use MapTiler Geocoding API if available
+      if (maptilerLoaded && MAPTILER_API_KEY !== 'YOUR_MAPTILER_API_KEY_HERE') {
+        searchWithMapTiler(query);
       } else {
-        // Use enhanced local suggestions
+        // Fallback to enhanced local suggestions
+        showEnhancedLocalSuggestions(query);
+      }
+    }
+
+    async function searchWithMapTiler(query) {
+      try {
+        const response = await fetch(
+          `https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=${maptilersdk.config.apiKey}&country=US&limit=8`
+        );
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          const suggestions = data.features.map(feature => feature.place_name);
+          showAddressSuggestions(suggestions);
+        } else {
+          showEnhancedLocalSuggestions(query);
+        }
+      } catch (error) {
+        console.error('MapTiler geocoding error:', error);
         showEnhancedLocalSuggestions(query);
       }
     }
@@ -586,7 +602,7 @@
       input.onchange = e => handlePhotoUpload(div, e.target.files);
       
       // Initialize map for this observation
-      initObservationMap(div);
+      setTimeout(() => initObservationMap(div), 100);
     }
 
     function removeObservation(btn) {
@@ -609,70 +625,80 @@
     function initObservationMap(observationDiv) {
       const mapContainer = observationDiv.querySelector('.observation-map');
       
-      if (googleMaps) {
-        // Initialize real Google Map
-        const map = new googleMaps.maps.Map(mapContainer, {
-          zoom: 18,
-          center: { lat: 40.7128, lng: -74.0060 },
-          mapTypeId: 'satellite'
-        });
+      if (maptilerLoaded) {
+        try {
+          // Initialize MapTiler map
+          const map = new maptilersdk.Map({
+            container: mapContainer,
+            style: maptilersdk.MapStyle.SATELLITE,
+            center: [-74.0060, 40.7128], // NYC coordinates [lng, lat]
+            zoom: 18
+          });
 
-        map.addListener('click', (event) => {
-          const location = {
-            lat: event.latLng.lat(),
-            lng: event.latLng.lng()
-          };
+          map.on('click', (e) => {
+            const location = {
+              lat: e.lngLat.lat,
+              lng: e.lngLat.lng
+            };
+            
+            // Remove existing marker
+            if (observationDiv.marker) {
+              observationDiv.marker.remove();
+            }
+            
+            // Add new marker
+            observationDiv.marker = new maptilersdk.Marker({
+              color: '#dc2626'
+            })
+            .setLngLat([location.lng, location.lat])
+            .addTo(map);
+            
+            observationDiv.observationLocation = location;
+            updateLocationDisplay(observationDiv);
+            updateOverviewMap();
+          });
+
+          observationDiv.map = map;
           
-          // Remove existing marker
-          if (observationDiv.marker) {
-            observationDiv.marker.setMap(null);
+          // If location already exists, add marker
+          if (observationDiv.observationLocation) {
+            observationDiv.marker = new maptilersdk.Marker({
+              color: '#dc2626'
+            })
+            .setLngLat([observationDiv.observationLocation.lng, observationDiv.observationLocation.lat])
+            .addTo(map);
+            map.setCenter([observationDiv.observationLocation.lng, observationDiv.observationLocation.lat]);
           }
-          
-          // Add new marker
-          observationDiv.marker = new googleMaps.maps.Marker({
-            position: location,
-            map: map,
-            title: 'Issue Location'
-          });
-          
-          observationDiv.observationLocation = location;
-          updateLocationDisplay(observationDiv);
-          updateOverviewMap();
-        });
-
-        observationDiv.map = map;
-        
-        // If location already exists, add marker
-        if (observationDiv.observationLocation) {
-          observationDiv.marker = new googleMaps.maps.Marker({
-            position: observationDiv.observationLocation,
-            map: map,
-            title: 'Issue Location'
-          });
-          map.setCenter(observationDiv.observationLocation);
+        } catch (error) {
+          console.error('Error initializing MapTiler map:', error);
+          initFallbackMap(observationDiv, mapContainer);
         }
       } else {
         // Fallback: clickable placeholder
-        mapContainer.style.cursor = 'pointer';
-        mapContainer.addEventListener('click', () => {
-          // Simulate location selection
-          const mockLocation = {
-            lat: 40.7128 + (Math.random() - 0.5) * 0.01,
-            lng: -74.0060 + (Math.random() - 0.5) * 0.01
-          };
-          
-          observationDiv.observationLocation = mockLocation;
-          mapContainer.innerHTML = `
-            <div class="map-placeholder">
-              <div class="map-icon">📍</div>
-              <div>Location Marked!</div>
-              <div style="font-size: 14px; margin-top: 5px;">Click again to change location</div>
-            </div>
-          `;
-          updateLocationDisplay(observationDiv);
-          updateOverviewMap();
-        });
+        initFallbackMap(observationDiv, mapContainer);
       }
+    }
+
+    function initFallbackMap(observationDiv, mapContainer) {
+      mapContainer.style.cursor = 'pointer';
+      mapContainer.addEventListener('click', () => {
+        // Simulate location selection
+        const mockLocation = {
+          lat: 40.7128 + (Math.random() - 0.5) * 0.01,
+          lng: -74.0060 + (Math.random() - 0.5) * 0.01
+        };
+        
+        observationDiv.observationLocation = mockLocation;
+        mapContainer.innerHTML = `
+          <div class="map-placeholder">
+            <div class="map-icon">📍</div>
+            <div>Location Marked!</div>
+            <div style="font-size: 14px; margin-top: 5px;">Click again to change location</div>
+          </div>
+        `;
+        updateLocationDisplay(observationDiv);
+        updateOverviewMap();
+      });
     }
 
     function updateLocationDisplay(observationDiv) {
@@ -703,52 +729,62 @@
         return;
       }
 
-      if (googleMaps) {
-        // Initialize real overview map
-        if (!overviewMapInstance) {
-          overviewMapInstance = new googleMaps.maps.Map(overviewMapContainer, {
-            zoom: 15,
-            center: { lat: 40.7128, lng: -74.0060 },
-            mapTypeId: 'satellite'
+      if (maptilerLoaded) {
+        try {
+          // Initialize MapTiler overview map
+          if (!overviewMapInstance) {
+            overviewMapInstance = new maptilersdk.Map({
+              container: overviewMapContainer,
+              style: maptilersdk.MapStyle.SATELLITE,
+              center: [-74.0060, 40.7128],
+              zoom: 15
+            });
+          }
+
+          // Clear existing markers
+          allMarkers.forEach(marker => marker.remove());
+          allMarkers = [];
+
+          // Add markers for all observations
+          const bounds = new maptilersdk.LngLatBounds();
+          locationsWithMarkers.forEach((obs, index) => {
+            const marker = new maptilersdk.Marker({
+              color: '#dc2626'
+            })
+            .setLngLat([obs.observationLocation.lng, obs.observationLocation.lat])
+            .addTo(overviewMapInstance);
+            
+            allMarkers.push(marker);
+            bounds.extend([obs.observationLocation.lng, obs.observationLocation.lat]);
           });
-        }
 
-        // Clear existing markers
-        allMarkers.forEach(marker => marker.setMap(null));
-        allMarkers = [];
-
-        // Add markers for all observations
-        const bounds = new googleMaps.maps.LatLngBounds();
-        locationsWithMarkers.forEach((obs, index) => {
-          const marker = new googleMaps.maps.Marker({
-            position: obs.observationLocation,
-            map: overviewMapInstance,
-            title: `Observation ${index + 1}`,
-            label: (index + 1).toString()
-          });
-          allMarkers.push(marker);
-          bounds.extend(obs.observationLocation);
-        });
-
-        if (locationsWithMarkers.length > 1) {
-          overviewMapInstance.fitBounds(bounds);
-        } else {
-          overviewMapInstance.setCenter(locationsWithMarkers[0].observationLocation);
-          overviewMapInstance.setZoom(18);
+          if (locationsWithMarkers.length > 1) {
+            overviewMapInstance.fitBounds(bounds, { padding: 50 });
+          } else {
+            overviewMapInstance.setCenter([locationsWithMarkers[0].observationLocation.lng, locationsWithMarkers[0].observationLocation.lat]);
+            overviewMapInstance.setZoom(18);
+          }
+        } catch (error) {
+          console.error('Error updating overview map:', error);
+          showFallbackOverview(locationsWithMarkers, overviewMapContainer);
         }
       } else {
         // Fallback overview display
-        overviewMapContainer.innerHTML = `
-          <div class="map-placeholder">
-            <div class="map-icon">🗺️</div>
-            <div>Overview Map</div>
-            <div style="font-size: 14px; margin-top: 5px;">${locationsWithMarkers.length} issue location(s) marked</div>
-            <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">
-              ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
-            </div>
-          </div>
-        `;
+        showFallbackOverview(locationsWithMarkers, overviewMapContainer);
       }
+    }
+
+    function showFallbackOverview(locationsWithMarkers, container) {
+      container.innerHTML = `
+        <div class="map-placeholder">
+          <div class="map-icon">🗺️</div>
+          <div>Overview Map</div>
+          <div style="font-size: 14px; margin-top: 5px;">${locationsWithMarkers.length} issue location(s) marked</div>
+          <div style="font-size: 12px; margin-top: 5px; color: #6c757d;">
+            ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
+          </div>
+        </div>
+      `;
     }
 
     // ==== Photo Handling ====
@@ -904,4 +940,3 @@
   </script>
 </body>
 </html>
-
