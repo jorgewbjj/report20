@@ -127,7 +127,7 @@
       border-bottom: none;
     }
 
-    /* Map styles */
+    /* FIXED Map styles with proper aspect ratio */
     .map-container {
       width: 100%;
       height: 300px;
@@ -136,6 +136,7 @@
       margin-top: 10px;
       position: relative;
       background: #f8f9fa;
+      overflow: hidden; /* Prevent stretching */
     }
     .map-placeholder {
       display: flex;
@@ -150,7 +151,7 @@
       margin-bottom: 10px;
     }
     .overview-map {
-      height: 400px;
+      height: 400px; /* Taller for better overview */
     }
     .location-info {
       font-size: 12px;
@@ -174,11 +175,12 @@
       color: #155724;
     }
 
-    /* MapTiler specific styles */
+    /* MapTiler specific styles - FIXED aspect ratio */
     .maptiler-map {
-      width: 100%;
-      height: 100%;
+      width: 100% !important;
+      height: 100% !important;
       border-radius: 6px;
+      object-fit: cover; /* Prevent stretching */
     }
 
     /* Enhanced Photo editing modal styles */
@@ -364,6 +366,13 @@
     .overview-preview-notice strong {
       color: #004499;
     }
+
+    /* FIXED: Prevent canvas stretching */
+    canvas {
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
   </style>
 
   <!-- Libraries -->
@@ -385,19 +394,19 @@
     ✅ MapTiler API key detected! Full mapping features are enabled with interactive maps and real-time geocoding.
   </div>
 
-  <!-- Enhanced Slack Configuration -->
+  <!-- CORRECTED Slack Configuration -->
   <div class="slack-config">
-    <h3>📢 Direct Slack Integration</h3>
+    <h3>📢 Direct Slack File Upload</h3>
     <div class="photo-edit-instructions">
-      <strong>New Feature:</strong> PDF reports are sent directly to your Slack channel without database storage. 
-      Configure your webhook URL below to enable instant delivery to #roof-inspections.
+      <strong>CORRECTED:</strong> PDF files are now uploaded directly to your Slack channel as file attachments. 
+      Configure your Slack Bot Token below to enable file upload to #roof-inspections.
     </div>
-    <label for="slackWebhook">Slack Webhook URL (required for PDF delivery):</label>
-    <input type="url" id="slackWebhook" placeholder="https://hooks.slack.com/services/..." />
+    <label for="slackBotToken">Slack Bot Token (xoxb-...):</label>
+    <input type="password" id="slackBotToken" placeholder="xoxb-your-bot-token-here" />
     <label for="slackChannel">Slack Channel:</label>
     <input type="text" id="slackChannel" placeholder="#roof-inspections" value="#roof-inspections" />
     <div class="slack-status disabled" id="slackStatus">
-      Slack automation disabled - Add webhook URL to enable direct PDF delivery to #roof-inspections
+      Slack file upload disabled - Add Bot Token to enable direct PDF file upload to #roof-inspections
     </div>
   </div>
 
@@ -449,7 +458,7 @@
     <button class="submit-btn" onclick="generatePDF()">Generate PDF &amp; Send to Slack</button>
   </div>
 
-  <!-- Enhanced Overview Map -->
+  <!-- FIXED Overview Map with proper aspect ratio -->
   <div class="form-group">
     <h2>Overview Map - PDF Preview</h2>
     <div class="overview-preview-notice">
@@ -517,7 +526,7 @@
     const obsContainer = document.getElementById('observations-container');
     const addressInput = document.getElementById('address');
     const addressSuggestions = document.getElementById('addressSuggestions');
-    const slackWebhookInput = document.getElementById('slackWebhook');
+    const slackBotTokenInput = document.getElementById('slackBotToken');
     const slackChannelInput = document.getElementById('slackChannel');
     const slackStatus = document.getElementById('slackStatus');
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -592,17 +601,17 @@
         `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    // ==== Enhanced Slack Configuration ====
+    // ==== CORRECTED Slack Configuration ====
     function setupSlackConfiguration() {
-      slackWebhookInput.addEventListener('input', updateSlackStatus);
+      slackBotTokenInput.addEventListener('input', updateSlackStatus);
       slackChannelInput.addEventListener('input', updateSlackStatus);
       
       // Load saved Slack configuration
-      const savedWebhook = localStorage.getItem('slackWebhook');
+      const savedToken = localStorage.getItem('slackBotToken');
       const savedChannel = localStorage.getItem('slackChannel');
       
-      if (savedWebhook) {
-        slackWebhookInput.value = savedWebhook;
+      if (savedToken) {
+        slackBotTokenInput.value = savedToken;
       }
       if (savedChannel) {
         slackChannelInput.value = savedChannel;
@@ -612,132 +621,70 @@
     }
 
     function updateSlackStatus() {
-      const webhook = slackWebhookInput.value.trim();
+      const token = slackBotTokenInput.value.trim();
       const channel = slackChannelInput.value.trim() || '#roof-inspections';
       
       // Save to localStorage
-      localStorage.setItem('slackWebhook', webhook);
+      localStorage.setItem('slackBotToken', token);
       localStorage.setItem('slackChannel', channel);
       
-      if (webhook && webhook.includes('hooks.slack.com')) {
+      if (token && token.startsWith('xoxb-')) {
         slackStatus.className = 'slack-status enabled';
-        slackStatus.textContent = `✅ Direct Slack delivery enabled - PDFs will be sent directly to ${channel} without database storage`;
+        slackStatus.textContent = `✅ Slack file upload enabled - PDFs will be uploaded directly to ${channel} as file attachments`;
       } else {
         slackStatus.className = 'slack-status disabled';
-        slackStatus.textContent = 'Slack automation disabled - Add webhook URL to enable direct PDF delivery to #roof-inspections';
+        slackStatus.textContent = 'Slack file upload disabled - Add Bot Token (xoxb-...) to enable direct PDF file upload to #roof-inspections';
       }
     }
 
-    // ==== Enhanced Slack Integration with File Upload ====
-    async function sendToSlack(pdfBlob, reportData) {
-      const webhook = slackWebhookInput.value.trim();
+    // ==== CORRECTED Slack File Upload Integration ====
+    async function uploadToSlack(pdfBlob, reportData) {
+      const token = slackBotTokenInput.value.trim();
       const channel = slackChannelInput.value.trim() || '#roof-inspections';
       
-      if (!webhook || !webhook.includes('hooks.slack.com')) {
-        console.log('Slack webhook not configured, skipping Slack notification');
+      if (!token || !token.startsWith('xoxb-')) {
+        console.log('Slack bot token not configured, skipping Slack upload');
         return;
       }
 
       try {
         // Show loading indicator
-        showLoadingOverlay('Sending PDF to Slack...', 'Uploading your report directly to the team channel.');
+        showLoadingOverlay('Uploading PDF to Slack...', 'Sending your report directly to the team channel as a file attachment.');
 
         // Create FormData for file upload
         const formData = new FormData();
         const filename = `Inspection_Report_${reportData.address.replace(/[^a-zA-Z0-9]/g,'_').slice(0,50)}_${reportData.date}.pdf`;
         
-        // Add the PDF file
+        // Add the PDF file and metadata
         formData.append('file', pdfBlob, filename);
         formData.append('channels', channel.replace('#', ''));
         formData.append('title', `Roof Inspection Report - ${reportData.address}`);
-        formData.append('initial_comment', `🏠 *New Roof Inspection Report Generated*\n\n📋 **Property:** ${reportData.address}\n👨‍🔧 **Inspector:** ${reportData.inspector}\n📅 **Date:** ${reportData.date}\n🏗️ **Roof Type:** ${reportData.roofType}\n⚠️ **Condition:** ${reportData.roofCondition}\n📊 **Issues Found:** ${reportData.observations.length} observation(s) documented\n\n*Generated by SEAL TOP ROOF Inspection System*`);
+        formData.append('initial_comment', `🏠 **New Roof Inspection Report**\n\n📋 **Property:** ${reportData.address}\n👨‍🔧 **Inspector:** ${reportData.inspector}\n📅 **Date:** ${reportData.date}\n🏗️ **Roof Type:** ${reportData.roofType}\n⚠️ **Condition:** ${reportData.roofCondition}\n📊 **Issues Found:** ${reportData.observations.length} observation(s) with numbered markers\n\n*Generated by SEAL TOP ROOF Inspection System*`);
 
-        // Extract bot token from webhook URL for file upload
-        const webhookParts = webhook.split('/');
-        const botToken = 'xoxb-your-bot-token'; // This would need to be configured separately
-        
-        // For now, send a rich message with download link
-        const message = {
-          channel: channel,
-          username: 'SEAL TOP ROOF Inspector',
-          icon_emoji: ':house_with_garden:',
-          text: `🏠 *New Roof Inspection Report Generated*`,
-          attachments: [
-            {
-              color: '#007bff',
-              title: `📋 Inspection Report - ${reportData.address}`,
-              fields: [
-                {
-                  title: '🏠 Property',
-                  value: reportData.address,
-                  short: true
-                },
-                {
-                  title: '👨‍🔧 Inspector',
-                  value: reportData.inspector,
-                  short: true
-                },
-                {
-                  title: '📅 Date',
-                  value: reportData.date,
-                  short: true
-                },
-                {
-                  title: '🏗️ Roof Type',
-                  value: reportData.roofType,
-                  short: true
-                },
-                {
-                  title: '⚠️ Condition',
-                  value: reportData.roofCondition,
-                  short: true
-                },
-                {
-                  title: '📊 Issues Found',
-                  value: `${reportData.observations.length} observation(s) documented with numbered markers`,
-                  short: true
-                }
-              ],
-              footer: 'SEAL TOP ROOF Inspection System | Direct PDF Delivery',
-              footer_icon: 'https://via.placeholder.com/16x16/007bff/ffffff?text=S',
-              ts: Math.floor(Date.now() / 1000),
-              actions: [
-                {
-                  type: 'button',
-                  text: '📄 Download PDF Report',
-                  url: URL.createObjectURL(pdfBlob),
-                  style: 'primary'
-                }
-              ]
-            }
-          ]
-        };
-
-        // Send to Slack
-        const response = await fetch(webhook, {
+        // Upload file to Slack using files.upload API
+        const response = await fetch('https://slack.com/api/files.upload', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify(message)
+          body: formData
         });
 
+        const result = await response.json();
         hideLoadingOverlay();
 
-        if (response.ok) {
-          console.log('✅ PDF report sent to Slack successfully');
-          // Show enhanced success notification
-          showNotification('success', `✅ PDF sent directly to ${channel}`, 
-            'Your team has been notified. The PDF was delivered with numbered overview map.');
+        if (result.ok) {
+          console.log('✅ PDF uploaded to Slack successfully');
+          showNotification('success', `✅ PDF uploaded to ${channel}`, 
+            'Your team has been notified and can download the PDF with numbered overview map.');
         } else {
-          throw new Error(`Slack API error: ${response.status} - ${response.statusText}`);
+          throw new Error(`Slack API error: ${result.error || 'Unknown error'}`);
         }
       } catch (error) {
         hideLoadingOverlay();
-        console.error('❌ Error sending to Slack:', error);
-        // Show enhanced error notification
-        showNotification('error', `❌ Failed to send to Slack: ${error.message}`, 
-          'The PDF was generated successfully, but Slack delivery failed. Please check your webhook URL.');
+        console.error('❌ Error uploading to Slack:', error);
+        showNotification('error', `❌ Failed to upload to Slack: ${error.message}`, 
+          'The PDF was generated successfully, but Slack upload failed. Please check your bot token.');
       }
     }
 
@@ -1025,12 +972,14 @@
             [propertyLocation.lng, propertyLocation.lat] : 
             [-74.0060, 40.7128];
           
-          // Initialize MapTiler map with CONSISTENT zoom level
+          // Initialize MapTiler map with CONSISTENT zoom level and FIXED aspect ratio
           const map = new maptilersdk.Map({
             container: mapContainer,
             style: maptilersdk.MapStyle.SATELLITE,
             center: center,
-            zoom: propertyLocation ? 18 : 15 // CONSISTENT zoom level
+            zoom: propertyLocation ? 18 : 15, // CONSISTENT zoom level
+            preserveDrawingBuffer: true, // For PDF capture
+            antialias: true // Better quality
           });
 
           map.on('load', () => {
@@ -1115,7 +1064,7 @@
       }
     }
 
-    // ==== Enhanced Overview Map (Matches Individual Maps) ====
+    // ==== FIXED Overview Map with Numbered Markers ====
     function updateOverviewMap() {
       const overviewMapContainer = document.getElementById('overviewMap');
       const observations = document.querySelectorAll('.observation-section');
@@ -1144,12 +1093,14 @@
               [propertyLocation.lng, propertyLocation.lat] : 
               [-74.0060, 40.7128];
             
-            // SAME settings as observation maps for consistency
+            // SAME settings as observation maps for consistency with FIXED aspect ratio
             overviewMapInstance = new maptilersdk.Map({
               container: overviewMapContainer,
               style: maptilersdk.MapStyle.SATELLITE, // SAME style
               center: center,
-              zoom: propertyLocation ? 18 : 15 // SAME zoom level as observation maps
+              zoom: propertyLocation ? 18 : 15, // SAME zoom level as observation maps
+              preserveDrawingBuffer: true, // For PDF capture
+              antialias: true // Better quality
             });
           }
 
@@ -1220,20 +1171,20 @@
       `;
     }
 
-    // ==== ENHANCED High-Quality Map Capture for PDF with NUMBERED MARKERS ====
+    // ==== CORRECTED High-Quality Map Capture for PDF with NUMBERED MARKERS ====
     async function createHighQualityMapCaptureForPDF(observations) {
       if (!maptilerLoaded || observations.length === 0) {
         return null;
       }
 
       try {
-        console.log('Creating high-quality map capture with numbered markers...');
+        console.log('Creating CORRECTED high-quality map capture with numbered markers...');
         
         // Create a larger hidden map container for high-quality capture
         const captureContainer = document.getElementById('mapCaptureContainer');
         captureContainer.innerHTML = '';
         captureContainer.style.width = '1200px';  // Higher resolution
-        captureContainer.style.height = '900px';  // Higher resolution
+        captureContainer.style.height = '900px';  // Higher resolution with proper aspect ratio
         captureContainer.style.position = 'absolute';
         captureContainer.style.top = '-9999px';
         captureContainer.style.left = '-9999px';
@@ -1257,7 +1208,7 @@
 
         // Wait for map to fully load
         await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error('Map load timeout')), 10000);
+          const timeout = setTimeout(() => reject(new Error('Map load timeout')), 15000);
           captureMap.on('load', () => {
             clearTimeout(timeout);
             resolve();
@@ -1268,7 +1219,7 @@
           });
         });
 
-        console.log('Map loaded, adding numbered markers...');
+        console.log('Map loaded, adding CORRECTED numbered markers...');
 
         // Add NUMBERED markers with ENHANCED styling for PDF capture
         const markers = [];
@@ -1309,26 +1260,26 @@
         captureMap.setCenter(center);
         captureMap.setZoom(18);
 
-        // Wait longer for rendering and marker placement
-        console.log('Waiting for map rendering...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        // Wait LONGER for rendering and marker placement
+        console.log('Waiting for map rendering with markers...');
+        await new Promise(resolve => setTimeout(resolve, 8000)); // Increased wait time
 
         // Force a repaint
         captureMap.resize();
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Additional wait after resize
 
         // Capture the map with high quality
-        console.log('Capturing map canvas...');
+        console.log('Capturing map canvas with numbered markers...');
         const canvas = captureMap.getCanvas();
         
         if (!canvas) {
           throw new Error('Canvas not available');
         }
 
-        // Create high-quality image
+        // Create high-quality image with proper aspect ratio
         const mapImageDataUrl = canvas.toDataURL('image/png', 1.0); // Maximum quality
 
-        console.log('Map capture successful, cleaning up...');
+        console.log('Map capture successful with numbered markers, cleaning up...');
 
         // Clean up markers
         markers.forEach(marker => marker.remove());
@@ -1339,7 +1290,7 @@
 
         return mapImageDataUrl;
       } catch (error) {
-        console.error('Error creating high-quality map capture:', error);
+        console.error('Error creating CORRECTED high-quality map capture:', error);
         
         // Clean up on error
         const captureContainer = document.getElementById('mapCaptureContainer');
@@ -1477,7 +1428,7 @@
       }
     }
 
-    // ==== ENHANCED PDF Generation with HIGH-QUALITY NUMBERED MARKERS in Overview Map ====
+    // ==== CORRECTED PDF Generation with HIGH-QUALITY NUMBERED MARKERS in Overview Map ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1492,7 +1443,7 @@
         }
 
         // Show loading overlay
-        showLoadingOverlay('Generating High-Quality PDF Report...', 'Creating professional report with numbered overview map and enhanced quality.');
+        showLoadingOverlay('Generating CORRECTED High-Quality PDF Report...', 'Creating professional report with numbered overview map and enhanced quality.');
 
         // Check if jsPDF is available
         if (typeof window.jspdf === 'undefined') {
@@ -1604,12 +1555,12 @@
           }
         });
 
-        // ENHANCED Overview map page (landscape) with HIGH-QUALITY NUMBERED MARKERS
+        // CORRECTED Overview map page (landscape) with HIGH-QUALITY NUMBERED MARKERS
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
-          console.log('Creating HIGH-QUALITY overview map with numbered markers for PDF...');
+          console.log('Creating CORRECTED HIGH-QUALITY overview map with numbered markers for PDF...');
           
-          // Create HIGH-QUALITY map capture using ENHANCED settings WITH NUMBERED MARKERS
+          // Create CORRECTED HIGH-QUALITY map capture using ENHANCED settings WITH NUMBERED MARKERS
           const mapImageDataUrl = await createHighQualityMapCaptureForPDF(savedObs);
           
           // Add landscape page
@@ -1642,10 +1593,29 @@
           const mapHeight = landscapeH - 140; // Space for coordinates
           
           if (mapImageDataUrl) {
-            // Add HIGH-QUALITY map image WITH NUMBERED MARKERS
+            // Add CORRECTED HIGH-QUALITY map image WITH NUMBERED MARKERS
             try {
-              console.log('Adding HIGH-QUALITY map image with numbered markers to PDF');
-              doc.addImage(mapImageDataUrl, 'PNG', 20, y, mapWidth, mapHeight, undefined, 'SLOW');
+              console.log('Adding CORRECTED HIGH-QUALITY map image with numbered markers to PDF');
+              // FIXED: Maintain aspect ratio and prevent stretching
+              const aspectRatio = 1200 / 900; // Original capture aspect ratio
+              const targetAspectRatio = mapWidth / mapHeight;
+              
+              let finalWidth = mapWidth;
+              let finalHeight = mapHeight;
+              
+              if (aspectRatio > targetAspectRatio) {
+                // Image is wider, fit to width
+                finalHeight = mapWidth / aspectRatio;
+              } else {
+                // Image is taller, fit to height
+                finalWidth = mapHeight * aspectRatio;
+              }
+              
+              // Center the image
+              const xOffset = (mapWidth - finalWidth) / 2;
+              const yOffset = (mapHeight - finalHeight) / 2;
+              
+              doc.addImage(mapImageDataUrl, 'PNG', 20 + xOffset, y + yOffset, finalWidth, finalHeight, undefined, 'SLOW');
               y += mapHeight + 10;
             } catch (mapImageError) {
               console.error('Error adding map image to PDF:', mapImageError);
@@ -1737,11 +1707,11 @@
         
         hideLoadingOverlay();
         
-        // Send directly to Slack (NO Firebase storage)
-        await sendToSlack(blob, reportData);
+        // CORRECTED: Upload directly to Slack (NO Firebase storage)
+        await uploadToSlack(blob, reportData);
         
-        showNotification('success', '✅ High-Quality PDF Generated with Numbered Markers!', 
-          'Professional report created with enhanced overview map and delivered directly to your team.');
+        showNotification('success', '✅ CORRECTED High-Quality PDF Generated with Numbered Markers!', 
+          'Professional report created with enhanced overview map and uploaded directly to Slack.');
 
       } catch(err){
         hideLoadingOverlay();
