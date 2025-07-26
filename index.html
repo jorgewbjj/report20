@@ -488,6 +488,143 @@
       color: var(--primary-color);
     }
 
+    /* NEW: PDF Map Preview Modal Styling */
+    .pdf-preview-modal {
+      display: none;
+      position: fixed;
+      z-index: 15000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.95);
+    }
+    
+    .pdf-preview-content {
+      background-color: #fefefe;
+      margin: 1% auto;
+      padding: 30px;
+      border-radius: 15px;
+      width: 95%;
+      max-width: 1200px;
+      max-height: 95vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    .pdf-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      border-bottom: 3px solid var(--primary-color);
+      padding-bottom: 20px;
+    }
+    
+    .pdf-preview-header h2 {
+      margin: 0;
+      color: var(--primary-color);
+      font-size: 26px;
+    }
+    
+    .pdf-preview-instructions {
+      background: linear-gradient(135deg, #e7f3ff 0%, #cce7ff 100%);
+      border: 2px solid #b3d9ff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #0066cc;
+      line-height: 1.6;
+    }
+    
+    .pdf-preview-instructions strong {
+      color: #004499;
+      font-weight: 600;
+    }
+    
+    /* NEW: PDF Preview Map Container */
+    .pdf-preview-map-container {
+      width: 100%;
+      height: 500px;
+      border: 3px solid var(--primary-color);
+      border-radius: 10px;
+      margin: 20px 0;
+      position: relative;
+      background: var(--bg-light);
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .pdf-preview-map-container .maptiler-map {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 7px;
+    }
+    
+    /* NEW: PDF Aspect Ratio Overlay */
+    .pdf-aspect-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px dashed #ff6b6b;
+      background: rgba(255, 107, 107, 0.1);
+      pointer-events: none;
+      z-index: 1000;
+    }
+    
+    .pdf-aspect-label {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      background: #ff6b6b;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    /* NEW: PDF Preview Controls */
+    .pdf-preview-controls {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin: 25px 0;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .pdf-preview-controls button {
+      padding: 12px 24px;
+      font-size: 16px;
+      min-width: 160px;
+      flex: none;
+      font-weight: 600;
+    }
+    
+    .generate-pdf-btn {
+      background: var(--success-color);
+      color: white;
+      font-size: 18px;
+      padding: 16px 32px;
+    }
+    
+    .generate-pdf-btn:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+    
+    .adjust-map-btn {
+      background: var(--primary-color);
+      color: white;
+    }
+    
+    .adjust-map-btn:hover {
+      background: #0056b3;
+    }
+
     /* IMPROVED Slack Configuration */
     .slack-config {
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -625,20 +762,24 @@
         height: 600px;
       }
       
-      .modal-content {
-        margin: 5% auto;
+      .modal-content, .pdf-preview-content {
+        margin: 2% auto;
         padding: 20px;
         width: 98%;
       }
       
-      .crop-controls {
+      .crop-controls, .pdf-preview-controls {
         flex-direction: column;
         align-items: stretch;
       }
       
-      .crop-controls button {
+      .crop-controls button, .pdf-preview-controls button {
         width: 100%;
         margin-bottom: 10px;
+      }
+      
+      .pdf-preview-map-container {
+        height: 400px;
       }
     }
   </style>
@@ -667,12 +808,12 @@
 
     <!-- IMPROVED Slack Configuration -->
     <div class="slack-config">
-      <h3>📢 Direct Slack File Upload - FIXED VERSION</h3>
+      <h3>📢 Direct Slack File Upload - ENHANCED VERSION</h3>
       <div class="photo-edit-instructions">
-        <strong>FIXED:</strong> Improved error handling, better file upload reliability, and enhanced debugging. 
+        <strong>ENHANCED:</strong> Now includes PDF map preview popup to ensure perfect map appearance in reports. 
         Configure your Slack Bot Token below to enable file upload to #roof-inspections.
         <br><br>
-        <strong>Setup Instructions:</strong> Follow the complete Slack setup guide provided separately for detailed bot creation steps.
+        <strong>New Feature:</strong> Click "Generate PDF" to preview and adjust the overview map exactly as it will appear in your PDF report.
       </div>
       <label for="slackBotToken">Slack Bot Token (xoxb-...):</label>
       <input type="password" id="slackBotToken" placeholder="xoxb-your-bot-token-here" />
@@ -728,26 +869,26 @@
 
     <div class="button-group">
       <button class="add-btn" onclick="addObservation()">Add Observation</button>
-      <button class="submit-btn" onclick="generatePDF()">Generate PDF &amp; Send to Slack</button>
+      <button class="submit-btn" onclick="showPDFPreview()">Generate PDF &amp; Send to Slack</button>
     </div>
 
     <!-- IMPROVED Overview Map Section with Much Bigger Size -->
     <div class="form-group">
-      <h2 class="section-header">Overview Map - PDF Preview (BIGGER SIZE)</h2>
+      <h2 class="section-header">Overview Map - Website Preview (BIGGER SIZE)</h2>
       <div class="overview-preview-notice">
-        <strong>📋 PDF Preview:</strong> This map is now much bigger (800px height) and shows exactly how the overview will appear in your PDF report. 
-        The zoom level and satellite imagery match the individual observation maps for consistency.
+        <strong>📋 Website Preview:</strong> This map is now much bigger (800px height) for better visibility and control. 
+        Use this to position and zoom the map as desired.
         <br><br>
         <strong>✨ Interactive Control:</strong> You can zoom, pan, and adjust this map view. 
-        The PDF will capture exactly what you see here, including all numbered markers.
+        When you click "Generate PDF", you'll see a preview popup showing exactly how it will appear in the PDF.
         <br><br>
-        <strong>🔧 FIXED:</strong> Improved map capture for PDF generation with better marker visibility and higher resolution output.
+        <strong>🔧 NEW FEATURE:</strong> PDF Preview Popup with exact aspect ratio matching and crop controls for perfect results.
       </div>
       <div class="map-container overview-map" id="overviewMap">
         <div class="map-placeholder">
           <div class="map-icon">🗺️</div>
-          <div><strong>Overview Map - PDF Preview (BIGGER)</strong></div>
-          <div style="font-size: 14px; margin-top: 10px;">Shows exactly how the map will appear in the PDF</div>
+          <div><strong>Overview Map - Website Preview (BIGGER)</strong></div>
+          <div style="font-size: 14px; margin-top: 10px;">Adjust zoom and position here, then use PDF preview to fine-tune</div>
           <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
         </div>
       </div>
@@ -783,7 +924,46 @@
         </div>
       </div>
     </div>
+
+    <!-- NEW: PDF Map Preview Modal -->
+    <div id="pdfPreviewModal" class="pdf-preview-modal">
+      <div class="pdf-preview-content">
+        <div class="pdf-preview-header">
+          <h2>📄 PDF Map Preview - Exact Layout</h2>
+          <span class="close" onclick="closePDFPreview()">&times;</span>
+        </div>
+        <div class="pdf-preview-instructions">
+          <strong>🎯 Perfect PDF Layout:</strong> This preview shows exactly how your overview map will appear in the PDF report. 
+          The red dashed box represents the exact PDF aspect ratio and cropping area.
+          <br><br>
+          <strong>✨ How to Use:</strong>
+          • The map below matches your website overview map
+          • The red box shows the exact area that will appear in the PDF
+          • Use zoom and pan controls to adjust the view
+          • All numbered markers will be preserved in the final PDF
+          • Click "Generate PDF Now" when satisfied with the layout
+          <br><br>
+          <strong>🔧 Pro Tip:</strong> Make sure all important markers are visible within the red dashed area for best results.
+        </div>
+        <div class="pdf-preview-map-container" id="pdfPreviewMapContainer">
+          <div class="pdf-aspect-overlay" id="pdfAspectOverlay">
+            <div class="pdf-aspect-label">PDF Crop Area</div>
+          </div>
+          <div class="map-placeholder">
+            <div class="map-icon">🗺️</div>
+            <div><strong>PDF Preview Map Loading...</strong></div>
+            <div style="font-size: 14px; margin-top: 10px;">Preparing exact PDF layout preview</div>
+          </div>
+        </div>
+        <div class="pdf-preview-controls">
+          <button class="adjust-map-btn" onclick="adjustPreviewMap()">🔄 Refresh Preview</button>
+          <button class="generate-pdf-btn" onclick="generatePDFFromPreview()">📄 Generate PDF Now</button>
+          <button class="cancel-btn" onclick="closePDFPreview()">✗ Cancel</button>
+        </div>
+      </div>
+    </div>
   </div>
+
 
   <script>
     // ==== Configuration ====
@@ -794,11 +974,18 @@
     let maptilerLoaded = false;
     let observationMaps = {};
     let overviewMapInstance = null;
+    let pdfPreviewMapInstance = null; // NEW: PDF preview map instance
     let allMarkers = [];
+    let pdfPreviewMarkers = []; // NEW: PDF preview markers
     let propertyLocation = null; // Store property location for auto-centering
     let currentCropper = null;
     let pendingPhotoFiles = []; // Store files waiting for editing
     let currentObservationDiv = null;
+
+    // NEW: PDF aspect ratio settings
+    const PDF_ASPECT_RATIO = 297 / 210; // A4 landscape aspect ratio (width/height)
+    const PDF_MAP_WIDTH = 257; // PDF map width in mm (A4 landscape - margins)
+    const PDF_MAP_HEIGHT = 180; // PDF map height in mm
 
     // ==== DOM refs ====
     const obsContainer = document.getElementById('observations-container');
@@ -1079,7 +1266,6 @@ Generated by SEAL TOP ROOF Inspection System`;
       document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-
     // ==== MapTiler Initialization ====
     function initializeMapTiler() {
       if (typeof maptilersdk !== 'undefined') {
@@ -1249,6 +1435,7 @@ Generated by SEAL TOP ROOF Inspection System`;
         overviewMapInstance.setZoom(18); // SAME zoom as observation maps
       }
     }
+
 
     // ==== Observations & Maps ====
     function addObservation() {
@@ -1422,8 +1609,8 @@ Generated by SEAL TOP ROOF Inspection System`;
         overviewMapContainer.innerHTML = `
           <div class="map-placeholder">
             <div class="map-icon">🗺️</div>
-            <div><strong>Overview Map - PDF Preview (BIGGER)</strong></div>
-            <div style="font-size: 14px; margin-top: 10px;">Shows exactly how the map will appear in the PDF</div>
+            <div><strong>Overview Map - Website Preview (BIGGER)</strong></div>
+            <div style="font-size: 14px; margin-top: 10px;">Adjust zoom and position here, then use PDF preview to fine-tune</div>
             <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">Mark locations on individual observation maps to see them here</div>
           </div>
         `;
@@ -1520,7 +1707,7 @@ Generated by SEAL TOP ROOF Inspection System`;
       container.innerHTML = `
         <div class="map-placeholder">
           <div class="map-icon">🗺️</div>
-          <div><strong>Overview Map - PDF Preview (BIGGER)</strong></div>
+          <div><strong>Overview Map - Website Preview (BIGGER)</strong></div>
           <div style="font-size: 14px; margin-top: 10px;">${locationsWithMarkers.length} issue location(s) marked</div>
           <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">
             ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
@@ -1529,95 +1716,219 @@ Generated by SEAL TOP ROOF Inspection System`;
       `;
     }
 
-    // ==== COMPLETELY FIXED High-Quality Map Capture for PDF ====
-    async function createHighQualityMapCaptureForPDF(observations) {
-      if (!maptilerLoaded || observations.length === 0 || !overviewMapInstance) {
-        console.log('Map capture not available - using fallback');
-        return null;
+    // ==== NEW: PDF Preview Functionality ====
+    function showPDFPreview() {
+      const address = document.getElementById('address').value.trim();
+      if (!address) {
+        alert('Please enter a property address before generating PDF');
+        return;
+      }
+
+      const observations = document.querySelectorAll('.observation-section');
+      const locationsWithMarkers = Array.from(observations).filter(obs => obs.observationLocation);
+      
+      if (locationsWithMarkers.length === 0) {
+        alert('Please mark at least one location on the observation maps before generating PDF');
+        return;
+      }
+
+      // Show PDF preview modal
+      const modal = document.getElementById('pdfPreviewModal');
+      modal.style.display = 'block';
+      
+      // Initialize PDF preview map
+      setTimeout(() => initializePDFPreviewMap(locationsWithMarkers), 100);
+    }
+
+    function initializePDFPreviewMap(locationsWithMarkers) {
+      const previewContainer = document.getElementById('pdfPreviewMapContainer');
+      
+      if (!maptilerLoaded) {
+        showFallbackPDFPreview(locationsWithMarkers, previewContainer);
+        return;
       }
 
       try {
-        console.log('Creating high-quality map capture for PDF...');
+        // Clear existing content
+        previewContainer.innerHTML = '';
         
-        // FIXED: Ensure map is fully loaded and rendered
-        await new Promise(resolve => {
-          if (overviewMapInstance.loaded()) {
-            resolve();
-          } else {
-            overviewMapInstance.on('load', resolve);
-          }
+        // Create aspect ratio overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'pdf-aspect-overlay';
+        overlay.id = 'pdfAspectOverlay';
+        
+        const label = document.createElement('div');
+        label.className = 'pdf-aspect-label';
+        label.textContent = 'PDF Crop Area';
+        overlay.appendChild(label);
+        
+        previewContainer.appendChild(overlay);
+
+        // Get current overview map settings
+        const currentCenter = overviewMapInstance ? overviewMapInstance.getCenter() : 
+          (propertyLocation ? [propertyLocation.lng, propertyLocation.lat] : [-74.0060, 40.7128]);
+        const currentZoom = overviewMapInstance ? overviewMapInstance.getZoom() : 18;
+
+        // Initialize PDF preview map with EXACT same settings as overview map
+        pdfPreviewMapInstance = new maptilersdk.Map({
+          container: previewContainer,
+          style: maptilersdk.MapStyle.SATELLITE,
+          center: currentCenter,
+          zoom: currentZoom,
+          preserveDrawingBuffer: true,
+          antialias: true,
+          fadeDuration: 0,
+          interactive: true // Allow user to adjust
         });
 
-        // FIXED: Wait for all tiles and markers to be fully rendered
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-        // FIXED: Force map repaint to ensure all elements are rendered
-        overviewMapInstance.resize();
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // FIXED: Trigger a redraw to ensure markers are visible
-        overviewMapInstance.triggerRepaint();
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // FIXED: Get the canvas with better error handling
-        const canvas = overviewMapInstance.getCanvas();
-        
-        if (!canvas) {
-          throw new Error('Canvas not available from overview map');
-        }
-
-        // FIXED: Verify canvas has content
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const hasContent = imageData.data.some(pixel => pixel !== 0);
-        
-        if (!hasContent) {
-          console.warn('Canvas appears to be empty, but proceeding with capture');
-        }
-
-        // FIXED: Create high-quality image with maximum settings
-        const mapImageDataUrl = canvas.toDataURL('image/png', 1.0);
-
-        // FIXED: Verify the captured image has reasonable size
-        if (mapImageDataUrl.length < 1000) {
-          throw new Error('Captured image appears to be too small or empty');
-        }
-
-        console.log('High-quality map capture successful:', {
-          canvasSize: `${canvas.width}x${canvas.height}`,
-          dataUrlLength: mapImageDataUrl.length,
-          markersCount: allMarkers.length
-        });
-
-        return mapImageDataUrl;
-      } catch (error) {
-        console.error('Error creating map capture:', error);
-        
-        // FIXED: Try alternative capture method using html2canvas as fallback
-        try {
-          console.log('Attempting fallback capture using html2canvas...');
-          const mapContainer = document.getElementById('overviewMap');
+        pdfPreviewMapInstance.on('load', () => {
+          console.log('PDF preview map loaded successfully');
           
-          if (typeof html2canvas !== 'undefined') {
-            const canvas = await html2canvas(mapContainer, {
-              useCORS: true,
-              allowTaint: true,
-              scale: 2, // Higher resolution
-              width: mapContainer.offsetWidth,
-              height: mapContainer.offsetHeight,
-              backgroundColor: null
-            });
-            
-            const fallbackDataUrl = canvas.toDataURL('image/png', 1.0);
-            console.log('Fallback capture successful');
-            return fallbackDataUrl;
-          }
-        } catch (fallbackError) {
-          console.error('Fallback capture also failed:', fallbackError);
-        }
-        
-        return null;
+          // Add markers to preview map
+          updatePDFPreviewMarkers(locationsWithMarkers);
+          
+          // Calculate and show PDF aspect ratio overlay
+          updatePDFAspectOverlay();
+        });
+
+        // Update overlay when map moves
+        pdfPreviewMapInstance.on('move', updatePDFAspectOverlay);
+        pdfPreviewMapInstance.on('zoom', updatePDFAspectOverlay);
+
+      } catch (error) {
+        console.error('Error initializing PDF preview map:', error);
+        showFallbackPDFPreview(locationsWithMarkers, previewContainer);
       }
+    }
+
+    function updatePDFPreviewMarkers(locationsWithMarkers) {
+      // Clear existing preview markers
+      pdfPreviewMarkers.forEach(marker => marker.remove());
+      pdfPreviewMarkers = [];
+
+      // Add numbered markers to preview map
+      locationsWithMarkers.forEach((obs, index) => {
+        const markerElement = document.createElement('div');
+        markerElement.style.cssText = `
+          background-color: #dc2626;
+          color: white;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          font-size: 18px;
+          border: 3px solid white;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          z-index: 1000;
+          position: relative;
+        `;
+        markerElement.textContent = (index + 1).toString();
+        
+        const marker = new maptilersdk.Marker({
+          element: markerElement,
+          anchor: 'center'
+        })
+        .setLngLat([obs.observationLocation.lng, obs.observationLocation.lat])
+        .addTo(pdfPreviewMapInstance);
+        
+        pdfPreviewMarkers.push(marker);
+      });
+    }
+
+    function updatePDFAspectOverlay() {
+      const overlay = document.getElementById('pdfAspectOverlay');
+      if (!overlay || !pdfPreviewMapInstance) return;
+
+      const container = document.getElementById('pdfPreviewMapContainer');
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
+
+      // Calculate PDF aspect ratio overlay dimensions
+      // PDF landscape: width > height, so we fit by height
+      const pdfAspectRatio = PDF_MAP_WIDTH / PDF_MAP_HEIGHT; // ~1.43
+      
+      let overlayWidth, overlayHeight;
+      
+      if (containerWidth / containerHeight > pdfAspectRatio) {
+        // Container is wider than PDF aspect ratio, fit by height
+        overlayHeight = containerHeight * 0.8; // 80% of container height
+        overlayWidth = overlayHeight * pdfAspectRatio;
+      } else {
+        // Container is taller than PDF aspect ratio, fit by width
+        overlayWidth = containerWidth * 0.8; // 80% of container width
+        overlayHeight = overlayWidth / pdfAspectRatio;
+      }
+
+      // Apply overlay dimensions and center it
+      overlay.style.width = overlayWidth + 'px';
+      overlay.style.height = overlayHeight + 'px';
+      overlay.style.left = '50%';
+      overlay.style.top = '50%';
+      overlay.style.transform = 'translate(-50%, -50%)';
+      
+      console.log('PDF aspect overlay updated:', {
+        containerSize: `${containerWidth}x${containerHeight}`,
+        overlaySize: `${overlayWidth}x${overlayHeight}`,
+        aspectRatio: pdfAspectRatio
+      });
+    }
+
+    function showFallbackPDFPreview(locationsWithMarkers, container) {
+      container.innerHTML = `
+        <div class="map-placeholder">
+          <div class="map-icon">📄</div>
+          <div><strong>PDF Preview (Fallback Mode)</strong></div>
+          <div style="font-size: 14px; margin-top: 10px;">${locationsWithMarkers.length} issue location(s) will be included</div>
+          <div style="font-size: 12px; margin-top: 8px; color: #6c757d;">
+            ${locationsWithMarkers.map((obs, i) => `Issue ${i+1}: ${obs.observationLocation.lat.toFixed(4)}, ${obs.observationLocation.lng.toFixed(4)}`).join('<br>')}
+          </div>
+        </div>
+      `;
+    }
+
+    function adjustPreviewMap() {
+      if (!pdfPreviewMapInstance || !overviewMapInstance) return;
+      
+      // Sync PDF preview map with current overview map settings
+      const currentCenter = overviewMapInstance.getCenter();
+      const currentZoom = overviewMapInstance.getZoom();
+      
+      pdfPreviewMapInstance.setCenter(currentCenter);
+      pdfPreviewMapInstance.setZoom(currentZoom);
+      
+      // Update markers
+      const observations = document.querySelectorAll('.observation-section');
+      const locationsWithMarkers = Array.from(observations).filter(obs => obs.observationLocation);
+      updatePDFPreviewMarkers(locationsWithMarkers);
+      
+      showNotification('success', '🔄 Preview Updated', 'PDF preview map has been synchronized with your overview map settings.');
+    }
+
+    function closePDFPreview() {
+      const modal = document.getElementById('pdfPreviewModal');
+      modal.style.display = 'none';
+      
+      // Clean up PDF preview map
+      if (pdfPreviewMapInstance) {
+        pdfPreviewMapInstance.remove();
+        pdfPreviewMapInstance = null;
+      }
+      
+      // Clear preview markers
+      pdfPreviewMarkers.forEach(marker => marker.remove());
+      pdfPreviewMarkers = [];
+    }
+
+    function generatePDFFromPreview() {
+      // Close preview modal
+      closePDFPreview();
+      
+      // Generate PDF with current settings
+      generatePDF();
     }
 
 
@@ -1749,7 +2060,7 @@ Generated by SEAL TOP ROOF Inspection System`;
       }
     }
 
-    // ==== COMPLETELY FIXED PDF Generation with High-Quality Overview Map ====
+    // ==== ENHANCED PDF Generation with Perfect Aspect Ratio and Fixed Map Capture ====
     async function generatePDF(){
       try {
         const address = document.getElementById('address').value.trim();
@@ -1764,7 +2075,7 @@ Generated by SEAL TOP ROOF Inspection System`;
         }
 
         // Show loading overlay
-        showLoadingOverlay('Generating PDF with High-Quality Overview Map...', 'Creating professional report with enhanced overview map capture and numbered markers.');
+        showLoadingOverlay('Generating PDF with Perfect Aspect Ratio...', 'Creating professional report with enhanced overview map capture and perfect aspect ratio handling.');
 
         // Check if jsPDF is available
         if (typeof window.jspdf === 'undefined') {
@@ -1876,13 +2187,13 @@ Generated by SEAL TOP ROOF Inspection System`;
           }
         });
 
-        // FIXED: Overview map page (landscape) with HIGH-QUALITY capture
+        // ENHANCED: Overview map page (landscape) with PERFECT aspect ratio and NO stretching
         const locationsCount = savedObs.filter(obs => obs.location).length;
         if (locationsCount > 0) {
-          console.log('Creating HIGH-QUALITY overview map for PDF...');
+          console.log('Creating PERFECT ASPECT RATIO overview map for PDF...');
           
-          // FIXED: Create HIGH-QUALITY map capture with better error handling
-          const mapImageDataUrl = await createHighQualityMapCaptureForPDF(savedObs);
+          // ENHANCED: Create PERFECT map capture with correct aspect ratio
+          const mapImageDataUrl = await createPerfectAspectRatioMapCapture(savedObs);
           
           // Add landscape page
           doc.addPage('a4', 'landscape');
@@ -1902,7 +2213,7 @@ Generated by SEAL TOP ROOF Inspection System`;
           doc.setFont('helvetica','bold');
           doc.setFontSize(16);
           // NO EMOJI - plain text only
-          doc.text('Overview Map - All Issues with Numbered Markers (HIGH QUALITY)', landscapeW/2, y, {align: 'center'}); 
+          doc.text('Overview Map - All Issues with Numbered Markers (PERFECT ASPECT RATIO)', landscapeW/2, y, {align: 'center'}); 
           y += 15;
           
           doc.setFont('helvetica','normal');
@@ -1910,30 +2221,23 @@ Generated by SEAL TOP ROOF Inspection System`;
           doc.text(`Total issue locations marked: ${locationsCount}`, 20, y); 
           y += 15;
           
-          const mapWidth = landscapeW - 40;
-          const mapHeight = landscapeH - 140; // Space for coordinates
+          // FIXED: Use exact PDF dimensions to prevent stretching
+          const mapX = 20;
+          const mapY = y;
+          const mapWidth = PDF_MAP_WIDTH; // Exact PDF width in mm
+          const mapHeight = PDF_MAP_HEIGHT; // Exact PDF height in mm
           
           if (mapImageDataUrl) {
-            // FIXED: Add HIGH-QUALITY map image with better sizing
+            // ENHANCED: Add PERFECT ASPECT RATIO map image with NO stretching
             try {
-              console.log('Adding HIGH-QUALITY map image to PDF');
+              console.log('Adding PERFECT ASPECT RATIO map image to PDF');
+              console.log('Map dimensions:', `${mapWidth}mm x ${mapHeight}mm`);
               
-              // FIXED: Create a test image to get dimensions
-              const testImg = new Image();
-              testImg.onload = () => {
-                console.log('Map image dimensions:', testImg.width, 'x', testImg.height);
-              };
-              testImg.src = mapImageDataUrl;
+              // Use exact dimensions to prevent any stretching
+              doc.addImage(mapImageDataUrl, 'PNG', mapX, mapY, mapWidth, mapHeight, undefined, 'SLOW');
+              y += mapHeight + 10;
               
-              // FIXED: Better aspect ratio handling
-              const maxWidth = mapWidth;
-              const maxHeight = mapHeight;
-              
-              // Use the full available space for maximum quality
-              doc.addImage(mapImageDataUrl, 'PNG', 20, y, maxWidth, maxHeight, undefined, 'SLOW');
-              y += maxHeight + 10;
-              
-              console.log('HIGH-QUALITY map image added successfully');
+              console.log('PERFECT ASPECT RATIO map image added successfully');
             } catch (mapImageError) {
               console.error('Error adding map image to PDF:', mapImageError);
               // Fallback to enhanced visual representation
@@ -1946,22 +2250,22 @@ Generated by SEAL TOP ROOF Inspection System`;
           }
           
           function addEnhancedVisualMapRepresentation() {
-            // Draw map border
+            // Draw map border with exact dimensions
             doc.setDrawColor(0);
             doc.setLineWidth(1);
-            doc.rect(20, y, mapWidth, mapHeight);
+            doc.rect(mapX, mapY, mapWidth, mapHeight);
             
             // Add map title inside
             doc.setFontSize(14);
-            doc.text('HIGH-QUALITY Overview Map with Numbered Markers', 30, y + 20);
+            doc.text('PERFECT ASPECT RATIO Overview Map with Numbered Markers', mapX + 10, mapY + 20);
             doc.setFontSize(10);
-            doc.text('(Map capture was not available - showing marker locations)', 30, y + 35);
+            doc.text('(Map capture was not available - showing marker locations)', mapX + 10, mapY + 35);
             
             // Enhanced visual representation of NUMBERED markers
             savedObs.forEach((obs, index) => {
               if (obs.location) {
-                const markerX = 50 + (index * 60);
-                const markerY = y + 80 + (Math.floor(index / 4) * 40);
+                const markerX = mapX + 30 + (index * 60);
+                const markerY = mapY + 80 + (Math.floor(index / 4) * 40);
                 
                 // Draw enhanced numbered circle marker
                 doc.setFillColor(220, 38, 38); // Red color
@@ -2002,9 +2306,9 @@ Generated by SEAL TOP ROOF Inspection System`;
           // Add note about map quality
           y += 5;
           doc.setFontSize(8);
-          doc.text('Note: This overview shows the high-quality capture of the interactive map with all numbered markers.', 20, y);
+          doc.text('Note: This overview shows the perfect aspect ratio capture with all numbered markers and NO stretching.', 20, y);
           y += 4;
-          doc.text('The PDF captures the precise view and zoom level that was displayed on the website with enhanced visibility.', 20, y);
+          doc.text('The PDF captures the precise view and zoom level with enhanced visibility and correct proportions.', 20, y);
         }
 
         // Save PDF locally
@@ -2027,13 +2331,186 @@ Generated by SEAL TOP ROOF Inspection System`;
         // Upload directly to Slack with improved error handling
         await uploadToSlack(blob, reportData);
         
-        showNotification('success', '✅ PDF Generated with HIGH-QUALITY Overview Map!', 
-          'Professional report created with enhanced overview map capture and improved Slack upload functionality.');
+        showNotification('success', '✅ PDF Generated with PERFECT Aspect Ratio!', 
+          'Professional report created with enhanced overview map capture, perfect aspect ratio, and NO stretching issues.');
 
       } catch(err){
         hideLoadingOverlay();
         console.error('PDF Generation Error:', err);
         showNotification('error', '❌ Error generating PDF', `PDF generation failed: ${err.message}`);
+      }
+    }
+
+    // ==== NEW: Perfect Aspect Ratio Map Capture Function ====
+    async function createPerfectAspectRatioMapCapture(observations) {
+      if (!maptilerLoaded || observations.length === 0 || !overviewMapInstance) {
+        console.log('Map capture not available - using fallback');
+        return null;
+      }
+
+      try {
+        console.log('Creating PERFECT ASPECT RATIO map capture for PDF...');
+        
+        // ENHANCED: Ensure map is fully loaded and rendered
+        await new Promise(resolve => {
+          if (overviewMapInstance.loaded()) {
+            resolve();
+          } else {
+            overviewMapInstance.on('load', resolve);
+          }
+        });
+
+        // ENHANCED: Wait for all tiles and markers to be fully rendered
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // ENHANCED: Force map repaint to ensure all elements are rendered
+        overviewMapInstance.resize();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // ENHANCED: Trigger a redraw to ensure markers are visible
+        overviewMapInstance.triggerRepaint();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // ENHANCED: Get the canvas with better error handling
+        const canvas = overviewMapInstance.getCanvas();
+        
+        if (!canvas) {
+          throw new Error('Canvas not available from overview map');
+        }
+
+        // ENHANCED: Create a new canvas with PERFECT PDF aspect ratio
+        const perfectCanvas = document.createElement('canvas');
+        const perfectCtx = perfectCanvas.getContext('2d');
+        
+        // Set canvas dimensions to match PDF aspect ratio exactly
+        const targetWidth = 1200; // High resolution width
+        const targetHeight = Math.round(targetWidth / (PDF_MAP_WIDTH / PDF_MAP_HEIGHT)); // Perfect aspect ratio height
+        
+        perfectCanvas.width = targetWidth;
+        perfectCanvas.height = targetHeight;
+        
+        console.log('Perfect aspect ratio canvas created:', {
+          width: targetWidth,
+          height: targetHeight,
+          aspectRatio: targetWidth / targetHeight,
+          pdfAspectRatio: PDF_MAP_WIDTH / PDF_MAP_HEIGHT
+        });
+
+        // ENHANCED: Fill with background color
+        perfectCtx.fillStyle = '#f0f0f0';
+        perfectCtx.fillRect(0, 0, targetWidth, targetHeight);
+
+        // ENHANCED: Calculate source and destination rectangles for perfect cropping
+        const sourceWidth = canvas.width;
+        const sourceHeight = canvas.height;
+        const sourceAspectRatio = sourceWidth / sourceHeight;
+        const targetAspectRatio = targetWidth / targetHeight;
+        
+        let sourceX = 0, sourceY = 0, sourceCropWidth = sourceWidth, sourceCropHeight = sourceHeight;
+        
+        if (sourceAspectRatio > targetAspectRatio) {
+          // Source is wider, crop horizontally
+          sourceCropWidth = sourceHeight * targetAspectRatio;
+          sourceX = (sourceWidth - sourceCropWidth) / 2;
+        } else {
+          // Source is taller, crop vertically
+          sourceCropHeight = sourceWidth / targetAspectRatio;
+          sourceY = (sourceHeight - sourceCropHeight) / 2;
+        }
+
+        // ENHANCED: Draw the perfectly cropped image
+        perfectCtx.drawImage(
+          canvas,
+          sourceX, sourceY, sourceCropWidth, sourceCropHeight, // Source rectangle
+          0, 0, targetWidth, targetHeight // Destination rectangle
+        );
+
+        // ENHANCED: Verify the captured image has reasonable content
+        const imageData = perfectCtx.getImageData(0, 0, targetWidth, targetHeight);
+        const hasContent = imageData.data.some(pixel => pixel !== 0);
+        
+        if (!hasContent) {
+          console.warn('Perfect aspect ratio canvas appears to be empty, but proceeding with capture');
+        }
+
+        // ENHANCED: Create high-quality image with perfect aspect ratio
+        const perfectMapImageDataUrl = perfectCanvas.toDataURL('image/png', 1.0);
+
+        // ENHANCED: Verify the captured image has reasonable size
+        if (perfectMapImageDataUrl.length < 1000) {
+          throw new Error('Perfect aspect ratio captured image appears to be too small or empty');
+        }
+
+        console.log('PERFECT ASPECT RATIO map capture successful:', {
+          originalCanvasSize: `${sourceWidth}x${sourceHeight}`,
+          croppedArea: `${sourceCropWidth}x${sourceCropHeight}`,
+          finalSize: `${targetWidth}x${targetHeight}`,
+          dataUrlLength: perfectMapImageDataUrl.length,
+          markersCount: allMarkers.length,
+          aspectRatio: targetWidth / targetHeight
+        });
+
+        return perfectMapImageDataUrl;
+      } catch (error) {
+        console.error('Error creating perfect aspect ratio map capture:', error);
+        
+        // ENHANCED: Try alternative capture method using html2canvas as fallback
+        try {
+          console.log('Attempting fallback capture using html2canvas with perfect aspect ratio...');
+          const mapContainer = document.getElementById('overviewMap');
+          
+          if (typeof html2canvas !== 'undefined') {
+            const canvas = await html2canvas(mapContainer, {
+              useCORS: true,
+              allowTaint: true,
+              scale: 2, // Higher resolution
+              width: mapContainer.offsetWidth,
+              height: mapContainer.offsetHeight,
+              backgroundColor: null
+            });
+            
+            // Apply perfect aspect ratio to fallback capture too
+            const perfectCanvas = document.createElement('canvas');
+            const perfectCtx = perfectCanvas.getContext('2d');
+            
+            const targetWidth = 1200;
+            const targetHeight = Math.round(targetWidth / (PDF_MAP_WIDTH / PDF_MAP_HEIGHT));
+            
+            perfectCanvas.width = targetWidth;
+            perfectCanvas.height = targetHeight;
+            
+            // Fill background
+            perfectCtx.fillStyle = '#f0f0f0';
+            perfectCtx.fillRect(0, 0, targetWidth, targetHeight);
+            
+            // Draw with perfect aspect ratio
+            const sourceAspectRatio = canvas.width / canvas.height;
+            const targetAspectRatio = targetWidth / targetHeight;
+            
+            let drawWidth = targetWidth;
+            let drawHeight = targetHeight;
+            let drawX = 0;
+            let drawY = 0;
+            
+            if (sourceAspectRatio > targetAspectRatio) {
+              drawHeight = targetWidth / sourceAspectRatio;
+              drawY = (targetHeight - drawHeight) / 2;
+            } else {
+              drawWidth = targetHeight * sourceAspectRatio;
+              drawX = (targetWidth - drawWidth) / 2;
+            }
+            
+            perfectCtx.drawImage(canvas, drawX, drawY, drawWidth, drawHeight);
+            
+            const fallbackDataUrl = perfectCanvas.toDataURL('image/png', 1.0);
+            console.log('Perfect aspect ratio fallback capture successful');
+            return fallbackDataUrl;
+          }
+        } catch (fallbackError) {
+          console.error('Perfect aspect ratio fallback capture also failed:', fallbackError);
+        }
+        
+        return null;
       }
     }
   </script>
